@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package excellent.encoding.text;
+
+option go_package = "github.com/limingyao/excellent-go/encoding/proto/text";
+
+message Data {
+  bytes video = 1;
+  // id -> data
+  map<int32, bytes> images = 2;
+}
+
+message Hello {
+  string session_id = 1;
+  int32 instance_id = 2;
+  Data data = 3;
+  repeated string names = 4;
+  string version = 5;
+}

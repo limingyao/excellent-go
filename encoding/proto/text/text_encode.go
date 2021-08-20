@@ -331,7 +331,9 @@ func (w *textWriter) writeMessage(m protoreflect.Message) error {
 				if err := w.writeSingularValue(entry.val, vfd); err != nil {
 					return err
 				}
-				w.WriteByte('\n')
+				if !w.compact {
+					w.WriteByte('\n')
+				}
 				w.indent--
 				w.WriteByte('>')
 				w.WriteByte('\n')
@@ -366,9 +368,25 @@ func (w *textWriter) writeSingularValue(v protoreflect.Value, fd protoreflect.Fi
 		}
 	case protoreflect.StringKind:
 		// NOTE: This does not validate UTF-8 for historical reasons.
-		w.writeQuotedString(string(v.String()))
+		if w.compact {
+			const limit = 100
+			s := v.String()
+			l := len(s)
+			if l > limit {
+				s = s[0:limit]
+				w.writeQuotedString(fmt.Sprintf("len:%d:%s...", l, s))
+			} else {
+				w.writeQuotedString(s)
+			}
+		} else {
+			w.writeQuotedString(string(v.String()))
+		}
 	case protoreflect.BytesKind:
-		w.writeQuotedString(string(v.Bytes()))
+		if w.compact {
+			w.writeQuotedString(fmt.Sprintf("len:%d", len(v.Bytes())))
+		} else {
+			w.writeQuotedString(string(v.Bytes()))
+		}
 	case protoreflect.MessageKind, protoreflect.GroupKind:
 		var bra, ket byte = '<', '>'
 		if fd.Kind() == protoreflect.GroupKind {
@@ -390,6 +408,9 @@ func (w *textWriter) writeSingularValue(v protoreflect.Value, fd protoreflect.Fi
 			w.writeMessage(m)
 		}
 		w.indent--
+		if w.compact {
+			w.buf = w.buf[0 : len(w.buf)-1]
+		}
 		w.WriteByte(ket)
 	case protoreflect.EnumKind:
 		if ev := fd.Enum().Values().ByNumber(v.Enum()); ev != nil {
