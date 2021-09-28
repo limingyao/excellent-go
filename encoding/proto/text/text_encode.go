@@ -379,7 +379,7 @@ func (w *textWriter) writeSingularValue(v protoreflect.Value, fd protoreflect.Fi
 				w.writeQuotedString(s)
 			}
 		} else {
-			w.writeQuotedString(string(v.String()))
+			w.writeQuotedString(v.String())
 		}
 	case protoreflect.BytesKind:
 		if w.compact {
@@ -408,7 +408,7 @@ func (w *textWriter) writeSingularValue(v protoreflect.Value, fd protoreflect.Fi
 			w.writeMessage(m)
 		}
 		w.indent--
-		if w.compact {
+		if w.compact && len(w.buf) > 0 && w.buf[len(w.buf)-1] == ' ' {
 			w.buf = w.buf[0 : len(w.buf)-1]
 		}
 		w.WriteByte(ket)

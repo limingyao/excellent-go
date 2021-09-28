@@ -19,6 +19,8 @@ func TestReadable(t *testing.T) {
 	hello.Data.Images[1] = []byte("second image")
 	hello.Data.Images[2] = []byte("third image")
 
+	t.Log(proto.MarshalTextString(hello))
+	t.Log(MarshalTextString(hello))
 	t.Log(proto.CompactTextString(hello))
 	t.Log(CompactTextString(hello))
 }
