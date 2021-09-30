@@ -10,8 +10,7 @@ require (
 	github.com/prometheus/client_golang v1.11.0
 	github.com/prometheus/client_model v0.2.0
 	github.com/prometheus/procfs v0.6.0
-	golang.org/x/net v0.0.0-20210405180319-a5a99cb37ef4
-	google.golang.org/genproto v0.0.0-20210617175327-b9e0b3197ced
-	google.golang.org/grpc v1.39.1
+	github.com/stretchr/testify v1.5.1
+	google.golang.org/grpc v1.39.1 // indirect
 	google.golang.org/protobuf v1.27.1
 )
