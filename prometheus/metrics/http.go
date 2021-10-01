@@ -1,6 +1,9 @@
 package metrics
 
-import "github.com/prometheus/client_golang/prometheus"
+import (
+	"github.com/prometheus/client_golang/prometheus"
+	"time"
+)
 
 var (
 	HTTPHandleCounter = prometheus.NewCounterVec(
@@ -16,6 +19,7 @@ var (
 			Name:       "http_handle_duration_milliseconds",
 			Help:       "http handle duration",
 			Objectives: map[float64]float64{0.5: 0.05, 0.9: 0.01, 0.99: 0.001},
+			MaxAge:     time.Minute,
 		},
 		// method: post/get ...
 		[]string{"addr", "method", "path"},
@@ -33,6 +37,7 @@ var (
 			Name:       "http_requests_duration_milliseconds",
 			Help:       "http request duration",
 			Objectives: map[float64]float64{0.5: 0.05, 0.9: 0.01, 0.99: 0.001},
+			MaxAge:     time.Minute,
 		},
 		// method: post/get ...
 		[]string{"code", "id", "addr", "method", "path"},
