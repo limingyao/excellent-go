@@ -64,7 +64,7 @@ func NewProcessExtCollector(opts CollectorOption) prometheus.Collector {
 			diskReadBytesDesc, diskWriteBytesDesc, diskCancelledWriteBytesDesc,
 		}
 		c.collectFn = func(ch chan<- prometheus.Metric) {
-			c.reportError(ch, descs[rand.Int()%len(descs)], fmt.Errorf("process ext metrics not supported %s", runtime.GOOS))
+			c.reportError(ch, descs[rand.Int()%len(descs)], fmt.Errorf("process ext metrics not supported %s/%s", runtime.GOOS, runtime.GOARCH))
 		}
 	}
 
