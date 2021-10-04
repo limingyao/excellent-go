@@ -13,6 +13,8 @@ require (
 	github.com/prometheus/client_model v0.2.0
 	github.com/prometheus/procfs v0.6.0
 	github.com/stretchr/testify v1.7.0
+	go.etcd.io/etcd/client/pkg/v3 v3.5.0
+	go.etcd.io/etcd/client/v3 v3.5.0
 	golang.org/x/time v0.0.0-20201208040808-7e3f01d25324
 	google.golang.org/grpc v1.39.1 // indirect
 	google.golang.org/protobuf v1.27.1
