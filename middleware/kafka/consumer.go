@@ -8,14 +8,14 @@ import (
 	"sync"
 )
 
-type KafkaConsumer struct {
+type Consumer struct {
 	consumer sarama.ConsumerGroup
 	wg       sync.WaitGroup
 	ctx      context.Context
 	cancel   context.CancelFunc
 }
 
-func NewKafkaConsumer(ctx context.Context, addrs []string, groupName string, version string, opts ...Option) (s *KafkaConsumer, err error) {
+func NewConsumer(ctx context.Context, addrs []string, groupName string, version string, opts ...Option) (s *Consumer, err error) {
 	defaultOpts := defaultOptions
 	for _, o := range opts {
 		o.apply(&defaultOpts)
@@ -37,7 +37,7 @@ func NewKafkaConsumer(ctx context.Context, addrs []string, groupName string, ver
 		config.Net.SASL.Password = defaultOpts.password
 	}
 
-	s = &KafkaConsumer{}
+	s = &Consumer{}
 	s.ctx, s.cancel = context.WithCancel(ctx)
 
 	s.consumer, err = sarama.NewConsumerGroup(addrs, groupName, config)
@@ -62,7 +62,7 @@ func NewKafkaConsumer(ctx context.Context, addrs []string, groupName string, ver
 	return s, nil
 }
 
-func (c *KafkaConsumer) Close() {
+func (c *Consumer) Close() {
 	c.cancel()
 	if err := c.consumer.Close(); err != nil {
 		log.Println(err)
@@ -71,7 +71,7 @@ func (c *KafkaConsumer) Close() {
 	log.Println("consumer closed")
 }
 
-func (c *KafkaConsumer) Consumer(topics []string, handler sarama.ConsumerGroupHandler) {
+func (c *Consumer) Consumer(topics []string, handler sarama.ConsumerGroupHandler) {
 	c.wg.Add(1)
 	go func() {
 		defer c.wg.Done()

@@ -8,10 +8,10 @@ import (
 	"time"
 )
 
-func TestKafkaProducer_ProduceSync(t *testing.T) {
+func TestProducer_ProduceSync(t *testing.T) {
 	assert := assert.New(t)
 
-	kfk, err := NewKafkaProducer([]string{"dev.machine:9092"})
+	kfk, err := NewProducer([]string{"dev.machine:9092"})
 	if err != nil {
 		t.Error(err)
 		return
@@ -23,10 +23,10 @@ func TestKafkaProducer_ProduceSync(t *testing.T) {
 	}
 }
 
-func TestKafkaProducer_ProduceAsync(t *testing.T) {
+func TestProducer_ProduceAsync(t *testing.T) {
 	assert := assert.New(t)
 
-	kfk, err := NewKafkaProducer([]string{"dev.machine:9092"})
+	kfk, err := NewProducer([]string{"dev.machine:9092"})
 	if err != nil {
 		t.Error(err)
 		return

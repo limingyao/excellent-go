@@ -46,8 +46,8 @@ func (h *consumerHandler) ConsumeClaim(session sarama.ConsumerGroupSession, clai
 	return nil
 }
 
-func TestKafkaConsumer_Consumer(t *testing.T) {
-	c, err := NewKafkaConsumer(context.Background(), []string{"dev.machine:9092"}, "test-group", sarama.V0_10_2_1.String())
+func TestConsumer_Consumer(t *testing.T) {
+	c, err := NewConsumer(context.Background(), []string{"dev.machine:9092"}, "test-group", sarama.V0_10_2_1.String())
 	if err != nil {
 		t.Error(err)
 		return
@@ -59,8 +59,8 @@ func TestKafkaConsumer_Consumer(t *testing.T) {
 	time.Sleep(5 * time.Minute)
 }
 
-func TestKafkaConsumer_Close(t *testing.T) {
-	c, err := NewKafkaConsumer(context.Background(), []string{"dev.machine:9092"}, "test-group", sarama.V0_10_2_1.String())
+func TestConsumer_Close(t *testing.T) {
+	c, err := NewConsumer(context.Background(), []string{"dev.machine:9092"}, "test-group", sarama.V0_10_2_1.String())
 	if err != nil {
 		t.Error(err)
 		return

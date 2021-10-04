@@ -8,12 +8,12 @@ import (
 	"time"
 )
 
-type KafkaProducer struct {
+type Producer struct {
 	syncProducer  sarama.SyncProducer
 	asyncProducer sarama.AsyncProducer
 }
 
-func NewKafkaProducer(addrs []string, opts ...Option) (s *KafkaProducer, err error) {
+func NewProducer(addrs []string, opts ...Option) (s *Producer, err error) {
 	defaultOpts := defaultOptions
 	for _, o := range opts {
 		o.apply(&defaultOpts)
@@ -36,7 +36,7 @@ func NewKafkaProducer(addrs []string, opts ...Option) (s *KafkaProducer, err err
 		config.Net.SASL.Password = defaultOpts.password
 	}
 
-	s = &KafkaProducer{}
+	s = &Producer{}
 
 	s.syncProducer, err = sarama.NewSyncProducer(addrs, config)
 	if err != nil {
@@ -51,7 +51,7 @@ func NewKafkaProducer(addrs []string, opts ...Option) (s *KafkaProducer, err err
 	return s, nil
 }
 
-func (s *KafkaProducer) ProduceSync(ctx context.Context, topic, key string, data interface{}) (partition int32, offset int64, err error) {
+func (s *Producer) ProduceSync(ctx context.Context, topic, key string, data interface{}) (partition int32, offset int64, err error) {
 	select {
 	case <-ctx.Done():
 		return 0, 0, ctx.Err()
@@ -72,7 +72,7 @@ func (s *KafkaProducer) ProduceSync(ctx context.Context, topic, key string, data
 	return s.syncProducer.SendMessage(msg)
 }
 
-func (s *KafkaProducer) ProduceAsync(ctx context.Context, topic, key string, data interface{}) error {
+func (s *Producer) ProduceAsync(ctx context.Context, topic, key string, data interface{}) error {
 	select {
 	case <-ctx.Done():
 		return ctx.Err()
@@ -95,7 +95,7 @@ func (s *KafkaProducer) ProduceAsync(ctx context.Context, topic, key string, dat
 	return nil
 }
 
-func (s *KafkaProducer) startAsyncMonitor() {
+func (s *Producer) startAsyncMonitor() {
 	for {
 		select {
 		case msg := <-s.asyncProducer.Successes():
