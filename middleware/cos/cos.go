@@ -67,7 +67,7 @@ func formatError(err error) error {
 	return fmt.Errorf("%s", msg)
 }
 
-type COSBucket struct {
+type Bucket struct {
 	client *s3.S3
 
 	bucketName string
@@ -86,7 +86,7 @@ func RawEndpoint(host, region string) string {
 	return host
 }
 
-func NewCOSBucket(host, bucketName, appId, region, secretId, secretKey, token string, endpoint Endpoint, opts ...Option) (*COSBucket, error) {
+func NewBucket(host, bucketName, appId, region, secretId, secretKey, token string, endpoint Endpoint, opts ...Option) (*Bucket, error) {
 	defaultOpts := defaultOptions
 	for _, o := range opts {
 		o.apply(&defaultOpts)
@@ -113,7 +113,7 @@ func NewCOSBucket(host, bucketName, appId, region, secretId, secretKey, token st
 		return nil, err
 	}
 
-	bucket := &COSBucket{}
+	bucket := &Bucket{}
 	bucket.client = s3.New(sess)
 	bucket.bucketName = bucketName
 	bucket.appId = appId
@@ -121,18 +121,18 @@ func NewCOSBucket(host, bucketName, appId, region, secretId, secretKey, token st
 	return bucket, nil
 }
 
-func (x COSBucket) parse(url string) (bucketName string, appId string, key string, err error) {
+func (x Bucket) parse(url string) (bucketName string, appId string, key string, err error) {
 	if x.pathStyle {
 		return parsePathStyle(url)
 	}
 	return parseVirtualHostedStyle(url)
 }
 
-func (x COSBucket) Client() *s3.S3 {
+func (x Bucket) Client() *s3.S3 {
 	return x.client
 }
 
-func (x COSBucket) Put(ctx context.Context, key string, buffer []byte) (string, error) {
+func (x Bucket) Put(ctx context.Context, key string, buffer []byte) (string, error) {
 	bufferReader := bytes.NewReader(buffer)
 	key = strings.TrimPrefix(key, "/")
 
@@ -183,7 +183,7 @@ func (x COSBucket) Put(ctx context.Context, key string, buffer []byte) (string, 
 	return fmt.Sprintf("%s://%s%s", t.Scheme, t.Host, t.Path), nil
 }
 
-func (x COSBucket) Download(ctx context.Context, url string) ([]byte, error) {
+func (x Bucket) Download(ctx context.Context, url string) ([]byte, error) {
 	bucketName, appId, sourceKey, err := x.parse(url)
 	if err != nil {
 		return nil, err
@@ -200,7 +200,7 @@ func (x COSBucket) Download(ctx context.Context, url string) ([]byte, error) {
 	return bufferWriter.Bytes(), nil
 }
 
-func (x COSBucket) Get(ctx context.Context, url string) ([]byte, error) {
+func (x Bucket) Get(ctx context.Context, url string) ([]byte, error) {
 	bucketName, appId, sourceKey, err := x.parse(url)
 	if err != nil {
 		return nil, err
@@ -226,7 +226,7 @@ func (x COSBucket) Get(ctx context.Context, url string) ([]byte, error) {
 	return body, nil
 }
 
-func (x COSBucket) Copy(ctx context.Context, sourceUrl, targetKey string) (string, error) {
+func (x Bucket) Copy(ctx context.Context, sourceUrl, targetKey string) (string, error) {
 	bucketName, appId, sourceKey, err := x.parse(sourceUrl)
 	if err != nil {
 		return "", err
@@ -256,7 +256,7 @@ func (x COSBucket) Copy(ctx context.Context, sourceUrl, targetKey string) (strin
 	return fmt.Sprintf("%s://%s%s", t.Scheme, t.Host, t.Path), nil
 }
 
-func (x COSBucket) Delete(ctx context.Context, url string) error {
+func (x Bucket) Delete(ctx context.Context, url string) error {
 	bucketName, appId, sourceKey, err := x.parse(url)
 	if err != nil {
 		return err
@@ -271,7 +271,7 @@ func (x COSBucket) Delete(ctx context.Context, url string) error {
 	return nil
 }
 
-func (x COSBucket) List(ctx context.Context, url string, latestKey *string, maxKeys int64) ([]string, *string, error) {
+func (x Bucket) List(ctx context.Context, url string, latestKey *string, maxKeys int64) ([]string, *string, error) {
 	bucketName, appId, sourceKey, err := x.parse(url)
 	if err != nil {
 		return nil, nil, err
@@ -299,7 +299,7 @@ func (x COSBucket) List(ctx context.Context, url string, latestKey *string, maxK
 	return files, objs.NextMarker, nil
 }
 
-func (x COSBucket) Presign(keyOrUrl string, expire time.Duration) (putUrl string, getUrl string, err error) {
+func (x Bucket) Presign(keyOrUrl string, expire time.Duration) (putUrl string, getUrl string, err error) {
 	bucketName, appId, sourceKey, err := x.parse(keyOrUrl)
 	if err != nil {
 		bucketName = x.bucketName

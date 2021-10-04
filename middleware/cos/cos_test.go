@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-func testBucket(t *testing.T, bucket *COSBucket) {
+func testBucket(t *testing.T, bucket *Bucket) {
 	url, err := bucket.Put(context.Background(), "hello", []byte("hello"))
 	t.Log(url, err)
 
@@ -35,8 +35,8 @@ func testBucket(t *testing.T, bucket *COSBucket) {
 	t.Log(err)
 }
 
-func TestPublicCOSBucket(t *testing.T) {
-	bucket, err := NewCOSBucket(
+func TestPublicBucket(t *testing.T) {
+	bucket, err := NewBucket(
 		"",
 		"test",
 		"12345678",
@@ -54,8 +54,8 @@ func TestPublicCOSBucket(t *testing.T) {
 	testBucket(t, bucket)
 }
 
-func TestPrivateCOSBucket(t *testing.T) {
-	bucket, err := NewCOSBucket(
+func TestPrivateBucket(t *testing.T) {
+	bucket, err := NewBucket(
 		"http://dev.machine:10000",
 		"test",
 		"1",
