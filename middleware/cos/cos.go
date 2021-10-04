@@ -227,6 +227,7 @@ func (x Bucket) Get(ctx context.Context, url string) ([]byte, error) {
 }
 
 func (x Bucket) Copy(ctx context.Context, sourceUrl, targetKey string) (string, error) {
+	targetKey = strings.TrimPrefix(targetKey, "/")
 	bucketName, appId, sourceKey, err := x.parse(sourceUrl)
 	if err != nil {
 		return "", err
@@ -234,7 +235,7 @@ func (x Bucket) Copy(ctx context.Context, sourceUrl, targetKey string) (string, 
 
 	if _, err = x.client.CopyObjectWithContext(ctx, &s3.CopyObjectInput{
 		Bucket:     aws.String(fmt.Sprintf("%s-%s", x.bucketName, x.appId)),
-		CopySource: aws.String(fmt.Sprintf("%s-%s/%s", bucketName, appId, sourceKey)),
+		CopySource: aws.String(url.PathEscape(fmt.Sprintf("%s-%s/%s", bucketName, appId, sourceKey))),
 		Key:        aws.String(targetKey),
 	}); err != nil {
 		return "", formatError(err)
