@@ -3,6 +3,7 @@ package http
 import (
 	"bytes"
 	"context"
+	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"google.golang.org/protobuf/proto"
@@ -35,6 +36,15 @@ func New(opts ...Option) (*HTTPClient, error) {
 	transport := http.DefaultTransport.(*http.Transport).Clone()
 	transport.MaxIdleConns = defaultOpts.maxIdleConns
 	transport.MaxIdleConnsPerHost = defaultOpts.maxIdleConns
+	if defaultOpts.tls != nil {
+		transport.TLSClientConfig = defaultOpts.tls
+	}
+	if defaultOpts.insecureSkipVerify {
+		if transport.TLSClientConfig == nil {
+			transport.TLSClientConfig = &tls.Config{}
+		}
+		transport.TLSClientConfig.InsecureSkipVerify = true
+	}
 
 	s := &HTTPClient{transport: transport, timeout: defaultOpts.timeout}
 
@@ -129,4 +139,8 @@ func (x HTTPClient) ProtoPost(ctx context.Context, target string, headers map[st
 
 func (x HTTPClient) Post(ctx context.Context, target string, headers map[string]string, requestData []byte) ([]byte, int, error) {
 	return x.Request(ctx, target, "POST", headers, requestData)
+}
+
+func (x HTTPClient) Put(ctx context.Context, target string, headers map[string]string, requestData []byte) ([]byte, int, error) {
+	return x.Request(ctx, target, "PUT", headers, requestData)
 }
