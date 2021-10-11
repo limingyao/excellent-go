@@ -21,12 +21,12 @@ func formatBody(buffer []byte) string {
 	return string(spaceRegexp.ReplaceAll(buffer, []byte(" ")))
 }
 
-type HTTPClient struct {
+type Client struct {
 	timeout   time.Duration
 	transport *http.Transport
 }
 
-func New(opts ...Option) (*HTTPClient, error) {
+func New(opts ...Option) (*Client, error) {
 	defaultOpts := defaultOptions
 	for _, o := range opts {
 		o.apply(&defaultOpts)
@@ -46,12 +46,12 @@ func New(opts ...Option) (*HTTPClient, error) {
 		transport.TLSClientConfig.InsecureSkipVerify = true
 	}
 
-	s := &HTTPClient{transport: transport, timeout: defaultOpts.timeout}
+	s := &Client{transport: transport, timeout: defaultOpts.timeout}
 
 	return s, nil
 }
 
-func (x HTTPClient) Request(ctx context.Context, target, method string, headers map[string]string, data []byte) ([]byte, int, error) {
+func (x Client) Request(ctx context.Context, target, method string, headers map[string]string, data []byte) ([]byte, int, error) {
 	request, err := http.NewRequest(method, target, bytes.NewReader(data))
 	if err != nil {
 		return nil, 0, err
@@ -79,7 +79,7 @@ func (x HTTPClient) Request(ctx context.Context, target, method string, headers 
 	return body, response.StatusCode, err
 }
 
-func (x HTTPClient) JSONPost(ctx context.Context, target string, headers map[string]string, req interface{}, rsp interface{}) (string, int, error) {
+func (x Client) JSONPost(ctx context.Context, target string, headers map[string]string, req interface{}, rsp interface{}) (string, int, error) {
 	if headers == nil {
 		headers = make(map[string]string)
 	}
@@ -108,7 +108,7 @@ func (x HTTPClient) JSONPost(ctx context.Context, target string, headers map[str
 	return "", httpCode, nil
 }
 
-func (x HTTPClient) ProtoPost(ctx context.Context, target string, headers map[string]string, req proto.Message, rsp proto.Message) (string, int, error) {
+func (x Client) ProtoPost(ctx context.Context, target string, headers map[string]string, req proto.Message, rsp proto.Message) (string, int, error) {
 	if headers == nil {
 		headers = make(map[string]string)
 	}
@@ -137,10 +137,14 @@ func (x HTTPClient) ProtoPost(ctx context.Context, target string, headers map[st
 	return "", httpCode, nil
 }
 
-func (x HTTPClient) Post(ctx context.Context, target string, headers map[string]string, requestData []byte) ([]byte, int, error) {
+func (x Client) Post(ctx context.Context, target string, headers map[string]string, requestData []byte) ([]byte, int, error) {
 	return x.Request(ctx, target, "POST", headers, requestData)
 }
 
-func (x HTTPClient) Put(ctx context.Context, target string, headers map[string]string, requestData []byte) ([]byte, int, error) {
+func (x Client) Get(ctx context.Context, target string, headers map[string]string) ([]byte, int, error) {
+	return x.Request(ctx, target, "GET", headers, []byte{})
+}
+
+func (x Client) Put(ctx context.Context, target string, headers map[string]string, requestData []byte) ([]byte, int, error) {
 	return x.Request(ctx, target, "PUT", headers, requestData)
 }
