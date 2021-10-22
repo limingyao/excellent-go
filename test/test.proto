@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package excellent.encoding.text;
 
-option go_package = "github.com/limingyao/excellent-go/encoding/proto/text";
+option go_package = "github.com/limingyao/excellent-go/test";
 
 message Data {
   bytes video = 1;
