@@ -6,6 +6,7 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
+	"github.com/gin-gonic/gin/binding"
 	"google.golang.org/protobuf/proto"
 	"io/ioutil"
 	"log"
@@ -113,7 +114,7 @@ func (x Client) ProtoPost(ctx context.Context, target string, headers map[string
 		headers = make(map[string]string)
 	}
 	if _, ok := headers["Content-Type"]; !ok {
-		headers["Content-Type"] = "application/x-protobuf"
+		headers["Content-Type"] = binding.MIMEPROTOBUF
 	}
 	rv := reflect.ValueOf(rsp)
 	if rsp == nil || rv.Kind() != reflect.Ptr {
