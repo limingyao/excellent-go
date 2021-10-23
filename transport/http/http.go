@@ -85,7 +85,7 @@ func (x Client) JSONPost(ctx context.Context, target string, headers map[string]
 		headers = make(map[string]string)
 	}
 	if _, ok := headers["Content-Type"]; !ok {
-		headers["Content-Type"] = "application/json"
+		headers["Content-Type"] = binding.MIMEJSON
 	}
 	rv := reflect.ValueOf(rsp)
 	if rsp == nil || rv.Kind() != reflect.Ptr {
