@@ -6,14 +6,15 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
-	"github.com/gin-gonic/gin/binding"
-	"google.golang.org/protobuf/proto"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"reflect"
 	"regexp"
 	"time"
+
+	"github.com/gin-gonic/gin/binding"
+	"google.golang.org/protobuf/proto"
 )
 
 var spaceRegexp = regexp.MustCompile(`[ \n\r\t\v\f]+`)
@@ -60,7 +61,7 @@ func (x Client) Request(ctx context.Context, target, method string, headers map[
 	for k, v := range headers {
 		request.Header.Set(k, v)
 	}
-	request.WithContext(ctx)
+	request = request.WithContext(ctx)
 
 	client := &http.Client{
 		Transport: x.transport,
