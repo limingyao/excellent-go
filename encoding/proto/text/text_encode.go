@@ -12,6 +12,7 @@ import (
 	"math"
 	"sort"
 	"strings"
+	"unicode"
 
 	"google.golang.org/protobuf/encoding/prototext"
 	"google.golang.org/protobuf/encoding/protowire"
@@ -427,8 +428,8 @@ func (w *textWriter) writeSingularValue(v protoreflect.Value, fd protoreflect.Fi
 // writeQuotedString writes a quoted string in the protocol buffer text format.
 func (w *textWriter) writeQuotedString(s string) {
 	w.WriteByte('"')
-	for i := 0; i < len(s); i++ {
-		switch c := s[i]; c {
+	for _, c := range s {
+		switch c {
 		case '\n':
 			w.buf = append(w.buf, `\n`...)
 		case '\r':
@@ -441,7 +442,9 @@ func (w *textWriter) writeQuotedString(s string) {
 			w.buf = append(w.buf, `\\`...)
 		default:
 			if isPrint := c >= 0x20 && c < 0x7f; isPrint {
-				w.buf = append(w.buf, c)
+				w.buf = append(w.buf, byte(c))
+			} else if unicode.Is(unicode.Han, c) {
+				w.buf = append(w.buf, []byte(string([]rune{c}))...)
 			} else {
 				w.buf = append(w.buf, fmt.Sprintf(`\%03o`, c)...)
 			}

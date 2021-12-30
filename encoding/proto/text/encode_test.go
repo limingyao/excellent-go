@@ -1,17 +1,18 @@
 package text
 
 import (
+	"testing"
+
 	"github.com/golang/protobuf/proto"
 	"github.com/google/uuid"
 	"github.com/limingyao/excellent-go/test"
-	"testing"
 )
 
 func TestReadable(t *testing.T) {
 	hello := &test.Hello{}
 	hello.SessionId = uuid.New().String()
 	hello.InstanceId = 10000
-	hello.Names = append(hello.Names, "hello", "world")
+	hello.Names = append(hello.Names, "hello", "中文")
 	hello.Version = "v1.0"
 	hello.Data = &test.Data{}
 	hello.Data.Video = []byte("video")
