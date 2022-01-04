@@ -2,46 +2,13 @@ package text
 
 import (
 	"fmt"
+
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
-type options struct {
-	maxLen int
-}
-
-var (
-	defaultOptions = options{
-		maxLen: 10,
-	}
-)
-
-type Option interface {
-	apply(*options)
-}
-
-type funcOption struct {
-	f func(*options)
-}
-
-func (fo *funcOption) apply(o *options) {
-	fo.f(o)
-}
-
-func newFuncOption(f func(*options)) *funcOption {
-	return &funcOption{
-		f: f,
-	}
-}
-
-func WithMaxLength(maxLen int) Option {
-	return newFuncOption(func(o *options) {
-		o.maxLen = maxLen
-	})
-}
-
-// Readable output human readable protobuf
+// Readable output human-readable protobuf
 func Readable(msg proto.Message, opts ...Option) string {
 	defaultOpts := defaultOptions
 	for _, o := range opts {

@@ -13,6 +13,7 @@ import (
 	"sort"
 	"strings"
 	"unicode"
+	"unicode/utf8"
 
 	"google.golang.org/protobuf/encoding/prototext"
 	"google.golang.org/protobuf/encoding/protowire"
@@ -27,6 +28,8 @@ const wrapTextMarshalV2 = false
 type TextMarshaler struct {
 	Compact   bool // use compact text format (one line)
 	ExpandAny bool // expand google.protobuf.Any messages of known types
+
+	opts options
 }
 
 // Marshal writes the proto text format of m to w.
@@ -73,6 +76,7 @@ func (tm *TextMarshaler) marshal(m Message) ([]byte, error) {
 			compact:   tm.Compact,
 			expandAny: tm.ExpandAny,
 			complete:  true,
+			opts:      tm.opts,
 		}
 
 		if m, ok := m.(encoding.TextMarshaler); ok {
@@ -104,7 +108,14 @@ func MarshalTextString(m Message) string { return defaultTextMarshaler.Text(m) }
 func CompactText(w io.Writer, m Message) error { return compactTextMarshaler.Marshal(w, m) }
 
 // CompactTextString returns a compact proto text formatted string of m.
-func CompactTextString(m Message) string { return compactTextMarshaler.Text(m) }
+func CompactTextString(m Message, opts ...Option) string {
+	defaultOpts := defaultOptions
+	for _, o := range opts {
+		o.apply(&defaultOpts)
+	}
+	compactTextMarshaler.opts = defaultOpts
+	return compactTextMarshaler.Text(m)
+}
 
 var (
 	newline         = []byte("\n")
@@ -121,6 +132,8 @@ type textWriter struct {
 	complete  bool // whether the current position is a complete line
 	indent    int  // indentation level; never negative
 	buf       []byte
+
+	opts options
 }
 
 func (w *textWriter) Write(p []byte) (n int, _ error) {
@@ -369,16 +382,11 @@ func (w *textWriter) writeSingularValue(v protoreflect.Value, fd protoreflect.Fi
 		}
 	case protoreflect.StringKind:
 		// NOTE: This does not validate UTF-8 for historical reasons.
-		if w.compact {
-			const limit = 100
-			s := v.String()
-			l := len(s)
-			if l > limit {
-				s = s[0:limit]
-				w.writeQuotedString(fmt.Sprintf("len:%d:%s...", l, s))
-			} else {
-				w.writeQuotedString(s)
-			}
+		s := v.String()
+		l := utf8.RuneCountInString(s)
+		if w.compact && w.opts.limit > 0 && l > w.opts.limit {
+			s := string([]rune(s)[:w.opts.limit])
+			w.writeQuotedString(fmt.Sprintf("len:%d:%s...", l, s))
 		} else {
 			w.writeQuotedString(v.String())
 		}

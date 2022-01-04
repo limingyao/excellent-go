@@ -25,6 +25,7 @@ func TestReadable(t *testing.T) {
 	t.Log(MarshalTextString(hello))
 	t.Log(proto.CompactTextString(hello))
 	t.Log(CompactTextString(hello))
+	t.Log(CompactTextString(hello, WithStringLimit(0)))
 }
 
 func TestCompact(t *testing.T) {
