@@ -2,9 +2,10 @@ package etcd
 
 import (
 	"crypto/tls"
-	"go.etcd.io/etcd/client/pkg/v3/transport"
 	"log"
 	"time"
+
+	"go.etcd.io/etcd/client/pkg/v3/transport"
 )
 
 type options struct {

@@ -2,12 +2,13 @@ package kafka
 
 import (
 	"context"
-	"github.com/Shopify/sarama"
-	"golang.org/x/time/rate"
 	"log"
 	"sync"
 	"testing"
 	"time"
+
+	"github.com/Shopify/sarama"
+	"golang.org/x/time/rate"
 )
 
 type consumerHandler struct {

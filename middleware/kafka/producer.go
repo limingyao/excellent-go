@@ -3,9 +3,10 @@ package kafka
 import (
 	"context"
 	"encoding/json"
-	"github.com/Shopify/sarama"
 	"log"
 	"time"
+
+	"github.com/Shopify/sarama"
 )
 
 type Producer struct {

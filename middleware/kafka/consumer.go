@@ -3,9 +3,10 @@ package kafka
 import (
 	"context"
 	"errors"
-	"github.com/Shopify/sarama"
 	"log"
 	"sync"
+
+	"github.com/Shopify/sarama"
 )
 
 type Consumer struct {
