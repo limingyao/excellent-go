@@ -2,11 +2,12 @@ package monitor
 
 import (
 	"fmt"
-	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/procfs"
 	"math/rand"
 	"os"
 	"runtime"
+
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/procfs"
 )
 
 // See https://github.com/prometheus/procfs/blob/master/proc_stat.go for details on userHZ.
