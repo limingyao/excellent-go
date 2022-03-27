@@ -27,3 +27,13 @@ func TestImagePull(t *testing.T) {
 	)
 	ast.True(errdefs.IsSystem(err))
 }
+
+func TestImageBuild(t *testing.T) {
+	ast := assert.New(t)
+	ctx := context.Background()
+	cli, err := New()
+	ast.Nil(err)
+
+	err = cli.ImageBuild(ctx, ".", "Dockerfile", "docker-build:unittest", WithCompress())
+	ast.Nil(err)
+}

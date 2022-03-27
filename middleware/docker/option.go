@@ -8,7 +8,11 @@ import (
 )
 
 type options struct {
+	// registryAuth for docker image pull
 	registryAuth string
+
+	// compress for docker build
+	compress bool
 }
 
 var (
@@ -35,11 +39,20 @@ func newFuncOption(f func(*options)) *funcOption {
 
 func WithRegistryAuth(username, password string) Option {
 	return newFuncOption(func(o *options) {
+		if username == "" && password == "" {
+			return
+		}
 		authConfig := types.AuthConfig{
 			Username: username,
 			Password: password,
 		}
 		encodedJSON, _ := json.Marshal(authConfig)
 		o.registryAuth = base64.URLEncoding.EncodeToString(encodedJSON)
+	})
+}
+
+func WithCompress() Option {
+	return newFuncOption(func(o *options) {
+		o.compress = true
 	})
 }
