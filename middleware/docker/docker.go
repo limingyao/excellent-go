@@ -42,7 +42,7 @@ func (x Client) ImagePull(ctx context.Context, imageName string, opts ...Option)
 	}
 	defer responseBody.Close()
 
-	if err := printStream(responseBody); err != nil {
+	if err := decodeStream(responseBody); err != nil {
 		return err
 	}
 
@@ -110,7 +110,7 @@ func (x Client) ImageBuild(ctx context.Context, contextDir, dockerfileName, tag 
 	}
 	defer response.Body.Close()
 
-	if err := printStream(response.Body); err != nil {
+	if err := decodeStream(response.Body); err != nil {
 		return err
 	}
 

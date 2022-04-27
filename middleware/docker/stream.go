@@ -8,6 +8,7 @@ import (
 	"log"
 	"strings"
 
+	"github.com/docker/cli/cli"
 	"github.com/docker/docker/pkg/jsonmessage"
 	"github.com/docker/docker/pkg/progress"
 )
@@ -23,7 +24,7 @@ func (m message) String() string {
 	return strings.TrimSpace(bf.String())
 }
 
-func printStream(reader io.ReadCloser) error {
+func decodeStream(reader io.ReadCloser) error {
 	dec := json.NewDecoder(reader)
 	for {
 		var jm message
@@ -35,6 +36,9 @@ func printStream(reader io.ReadCloser) error {
 		}
 		if msg := jm.String(); msg != "{}" {
 			log.Print(msg)
+		}
+		if jm.Error != nil {
+			return cli.StatusError{Status: jm.Error.Message, StatusCode: jm.Error.Code}
 		}
 	}
 	return nil

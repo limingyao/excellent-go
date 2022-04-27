@@ -17,7 +17,7 @@ func TestImagePull(t *testing.T) {
 	err = cli.ImagePull(ctx, "ccr.ccs.tencentyun.com/central/centos:7")
 	ast.Nil(err)
 
-	err = cli.ImagePull(ctx, "ccr.ccs.tencentyun.com/central/centos:not_found")
+	err = cli.ImagePull(ctx, "ccr.ccs.tencentyun.com/central/centos:not-found")
 	ast.True(errdefs.IsNotFound(err))
 
 	err = cli.ImagePull(
@@ -36,4 +36,10 @@ func TestImageBuild(t *testing.T) {
 
 	err = cli.ImageBuild(ctx, ".", "Dockerfile", "docker-build:unittest", WithCompress())
 	ast.Nil(err)
+
+	err = cli.ImageBuild(ctx, ".", "Dockerfile_no_auth", "docker-build:unittest", WithCompress())
+	ast.NotNil(err)
+
+	err = cli.ImageBuild(ctx, ".", "Dockerfile_not_found", "docker-build:unittest", WithCompress())
+	ast.NotNil(err)
 }
