@@ -1,10 +1,11 @@
-package text
+package text_test
 
 import (
 	"testing"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/google/uuid"
+	"github.com/limingyao/excellent-go/encoding/proto/text"
 	"github.com/limingyao/excellent-go/test"
 )
 
@@ -22,10 +23,15 @@ func TestReadable(t *testing.T) {
 	hello.Data.Images[2] = []byte("third image")
 
 	t.Log(proto.MarshalTextString(hello))
-	t.Log(MarshalTextString(hello))
+	t.Log(text.MarshalTextString(hello))
 	t.Log(proto.CompactTextString(hello))
-	t.Log(CompactTextString(hello))
-	t.Log(CompactTextString(hello, WithStringLimit(0)))
+	t.Log(text.CompactTextString(hello))
+
+	m := text.NewMarshaler(text.WithCompact())
+	t.Log(m.Text(hello))
+
+	m = text.NewMarshaler(text.WithCompact(), text.WithStringLimit(6))
+	t.Log(m.Text(hello))
 }
 
 func TestCompact(t *testing.T) {

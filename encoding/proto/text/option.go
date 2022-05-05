@@ -1,12 +1,13 @@
 package text
 
 type options struct {
-	limit int // max string length
+	limit   int // max string length
+	compact bool
 }
 
 var (
 	defaultOptions = options{
-		limit: 100,
+		limit: 0, // 0 unlimited
 	}
 )
 
@@ -31,5 +32,11 @@ func newFuncOption(f func(*options)) *funcOption {
 func WithStringLimit(limit int) Option {
 	return newFuncOption(func(o *options) {
 		o.limit = limit
+	})
+}
+
+func WithCompact() Option {
+	return newFuncOption(func(o *options) {
+		o.compact = true
 	})
 }

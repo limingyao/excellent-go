@@ -98,6 +98,15 @@ var (
 	compactTextMarshaler = TextMarshaler{Compact: true}
 )
 
+func NewMarshaler(opts ...Option) TextMarshaler {
+	defaultOpts := defaultOptions
+	for _, o := range opts {
+		o.apply(&defaultOpts)
+	}
+
+	return TextMarshaler{opts: defaultOpts, Compact: defaultOpts.compact}
+}
+
 // MarshalText writes the proto text format of m to w.
 func MarshalText(w io.Writer, m Message) error { return defaultTextMarshaler.Marshal(w, m) }
 
@@ -108,14 +117,7 @@ func MarshalTextString(m Message) string { return defaultTextMarshaler.Text(m) }
 func CompactText(w io.Writer, m Message) error { return compactTextMarshaler.Marshal(w, m) }
 
 // CompactTextString returns a compact proto text formatted string of m.
-func CompactTextString(m Message, opts ...Option) string {
-	defaultOpts := defaultOptions
-	for _, o := range opts {
-		o.apply(&defaultOpts)
-	}
-	compactTextMarshaler.opts = defaultOpts
-	return compactTextMarshaler.Text(m)
-}
+func CompactTextString(m Message) string { return compactTextMarshaler.Text(m) }
 
 var (
 	newline         = []byte("\n")
