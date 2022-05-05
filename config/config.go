@@ -34,8 +34,8 @@ type config struct {
 	key     string
 	decoder Codec
 
-	rawData       []byte
-	unmarshalData interface{}
+	rawData         []byte
+	unmarshaledData interface{}
 }
 
 func (c *config) Load() error {
@@ -45,8 +45,8 @@ func (c *config) Load() error {
 	}
 
 	c.rawData = data
-	c.unmarshalData = map[string]interface{}{}
-	if err := c.decoder.Unmarshal(c.rawData, &c.unmarshalData); err != nil {
+	c.unmarshaledData = map[string]interface{}{}
+	if err := c.decoder.Unmarshal(c.rawData, &c.unmarshaledData); err != nil {
 		return err
 	}
 
@@ -65,7 +65,7 @@ func (c *config) Reload() error {
 	}
 
 	c.rawData = data
-	c.unmarshalData = unmarshalData
+	c.unmarshaledData = unmarshalData
 
 	return nil
 }
