@@ -1,4 +1,4 @@
-package proto
+package encoding
 
 import (
 	"github.com/gin-gonic/gin/binding"

@@ -1,4 +1,4 @@
-package text
+package prototext
 
 type options struct {
 	limit   int // max string length

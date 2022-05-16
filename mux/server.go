@@ -9,7 +9,7 @@ import (
 	"sync"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
-	"github.com/limingyao/excellent-go/encoding/proto"
+	"github.com/limingyao/excellent-go/encoding"
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/h2c"
 	"google.golang.org/grpc"
@@ -92,8 +92,8 @@ func (x *ServeMux) init(opts ...Option) {
 
 		}
 
-		x.grpcServer = grpc.NewServer()                                                                                       // todo opt ...
-		x.grpcGatewayServer = runtime.NewServeMux(runtime.WithMarshalerOption("application/proto", &proto.ProtoMarshaller{})) // todo opt ...
+		x.grpcServer = grpc.NewServer()                                                                                          // todo opt ...
+		x.grpcGatewayServer = runtime.NewServeMux(runtime.WithMarshalerOption("application/proto", &encoding.ProtoMarshaller{})) // todo opt ...
 		x.Server.Handler = h2c.NewHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			if r.ProtoMajor == 2 && strings.Contains(r.Header.Get("Content-Type"), "application/grpc") {
 				x.grpcServer.ServeHTTP(w, r)

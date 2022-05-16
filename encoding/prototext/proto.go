@@ -11,7 +11,7 @@
 //
 // Deprecated: Use the "google.golang.org/protobuf/proto" package instead.
 
-package text
+package prototext
 
 import (
 	"google.golang.org/protobuf/reflect/protoreflect"
