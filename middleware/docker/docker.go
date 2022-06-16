@@ -152,7 +152,7 @@ func (x Client) ImagesSave(ctx context.Context, imageNames []string, output stri
 	}
 	defer outputFile.Close()
 
-	reader, err := x.cli.ImageSave(ctx, imageNames)
+	reader, err := x.cli.ImageSave(ctx, imageNames) // 这里会占用一定的耗时
 	if err != nil {
 		return err
 	}
@@ -167,7 +167,7 @@ func (x Client) ImagesSave(ctx context.Context, imageNames []string, output stri
 		totalSize += inspectResp.Size
 	}
 
-	// setup an upload progress bar
+	// setup a save progress bar
 	progressReader := progress.NewProgressReader(
 		reader,
 		&progressLog{sf: &rawProgressFormatter{}},
