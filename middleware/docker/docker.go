@@ -32,11 +32,9 @@ func (x Client) ImagePull(ctx context.Context, imageName string, opts ...Option)
 		o.apply(&defaultOpts)
 	}
 
-	responseBody, err := x.cli.ImagePull(
-		ctx,
-		imageName,
-		types.ImagePullOptions{RegistryAuth: defaultOpts.registryAuth},
-	)
+	responseBody, err := x.cli.ImagePull(ctx, imageName, types.ImagePullOptions{
+		RegistryAuth: defaultOpts.registryAuth,
+	})
 	if err != nil {
 		return err
 	}
@@ -125,6 +123,32 @@ func (x Client) ImageSave(ctx context.Context) error {
 // ImageRemove remove an image, like docker rmi
 func (x Client) ImageRemove(ctx context.Context) error {
 	return nil
+}
+
+// ImagePush Push an image, like docker push
+func (x Client) ImagePush(ctx context.Context, imageName string, opts ...Option) error {
+	defaultOpts := defaultOptions
+	for _, o := range opts {
+		o.apply(&defaultOpts)
+	}
+	responseBody, err := x.cli.ImagePush(ctx, imageName, types.ImagePushOptions{
+		RegistryAuth: defaultOpts.registryAuth,
+	})
+	if err != nil {
+		return err
+	}
+	defer responseBody.Close()
+
+	if err := decodeStream(responseBody); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// ImageTag Push an image, like docker tag
+func (x Client) ImageTag(ctx context.Context, sourceTag, targetTag string) error {
+	return x.cli.ImageTag(ctx, sourceTag, targetTag)
 }
 
 // RunContainer run container in the background, like docker run -d ...

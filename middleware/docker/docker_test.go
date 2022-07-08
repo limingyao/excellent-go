@@ -43,3 +43,24 @@ func TestImageBuild(t *testing.T) {
 	err = cli.ImageBuild(ctx, ".", "Dockerfile_not_found", "docker-build:unittest", WithCompress())
 	ast.NotNil(err)
 }
+
+func TestImageTag(t *testing.T) {
+	ast := assert.New(t)
+	ctx := context.Background()
+	cli, err := New()
+	ast.Nil(err)
+
+	err = cli.ImageTag(ctx, "ccr.ccs.tencentyun.com/central/centos:7", "ccr.ccs.tencentyun.com/central/centos:7.2")
+	ast.Nil(err)
+}
+
+func TestImagePush(t *testing.T) {
+	ast := assert.New(t)
+	ctx := context.Background()
+	cli, err := New()
+	ast.Nil(err)
+
+	err = cli.ImagePush(ctx, "ccr.ccs.tencentyun.com/central/centos:7.2", WithRegistryAuth("u", "p"))
+	t.Log(err)
+	ast.Nil(err)
+}
