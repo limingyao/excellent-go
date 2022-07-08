@@ -37,6 +37,12 @@ func TestImageBuild(t *testing.T) {
 	err = cli.ImageBuild(ctx, ".", "Dockerfile", "docker-build:unittest", WithCompress())
 	ast.Nil(err)
 
+	err = cli.ImageSave(ctx, "docker-build:unittest", "/tmp/1.tar")
+	ast.Nil(err)
+
+	err = cli.ImageRemove(ctx, "docker-build:unittest")
+	ast.Nil(err)
+
 	err = cli.ImageBuild(ctx, ".", "Dockerfile_no_auth", "docker-build:unittest", WithCompress())
 	ast.NotNil(err)
 
