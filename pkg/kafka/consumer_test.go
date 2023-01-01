@@ -2,13 +2,14 @@ package kafka_test
 
 import (
 	"context"
-	"log"
 	"sync"
 	"testing"
 	"time"
 
 	"github.com/Shopify/sarama"
+	_ "github.com/limingyao/excellent-go/log/logrus"
 	"github.com/limingyao/excellent-go/pkg/kafka"
+	log "github.com/sirupsen/logrus"
 	"golang.org/x/time/rate"
 )
 
@@ -18,13 +19,13 @@ type consumerHandler struct {
 }
 
 func (h *consumerHandler) Setup(sarama.ConsumerGroupSession) error {
-	log.Println("setup")
+	log.Infof("setup")
 	h.limiter = rate.NewLimiter(1, 10)
 	return nil
 }
 
 func (h *consumerHandler) Cleanup(sarama.ConsumerGroupSession) error {
-	log.Println("cleanup")
+	log.Infof("cleanup")
 	h.wg.Wait()
 	return nil
 }
@@ -36,12 +37,12 @@ func (h *consumerHandler) ConsumeClaim(session sarama.ConsumerGroupSession, clai
 			go func(message *sarama.ConsumerMessage) {
 				defer h.wg.Done()
 
-				log.Printf("topic %s, partition: %d, offset: %d", message.Topic, message.Partition, message.Offset)
-				log.Printf("message claimed: value [%s], timestamp: %v", message.Value, message.Timestamp)
+				log.Infof("topic %s, partition: %d, offset: %d", message.Topic, message.Partition, message.Offset)
+				log.Infof("message claimed: value [%s], timestamp: %v", message.Value, message.Timestamp)
 			}(message)
 			session.MarkMessage(message, "")
 		} else {
-			log.Println(err)
+			log.WithError(err).Error()
 		}
 	}
 

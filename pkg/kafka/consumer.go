@@ -3,10 +3,11 @@ package kafka
 import (
 	"context"
 	"errors"
-	"log"
 	"sync"
 
 	"github.com/Shopify/sarama"
+	_ "github.com/limingyao/excellent-go/log/logrus"
+	log "github.com/sirupsen/logrus"
 )
 
 type Consumer struct {
@@ -53,7 +54,7 @@ func NewConsumer(ctx context.Context, addrs []string, groupName string, version 
 		for {
 			select {
 			case err := <-s.consumer.Errors():
-				log.Println(err)
+				log.WithError(err).Error()
 			case <-s.ctx.Done():
 				return
 			}
@@ -66,10 +67,10 @@ func NewConsumer(ctx context.Context, addrs []string, groupName string, version 
 func (c *Consumer) Close() {
 	c.cancel()
 	if err := c.consumer.Close(); err != nil {
-		log.Println(err)
+		log.WithError(err).Error()
 	}
 	c.wg.Wait()
-	log.Println("consumer closed")
+	log.Infof("consumer closed")
 }
 
 func (c *Consumer) Consumer(topics []string, handler sarama.ConsumerGroupHandler) {
@@ -82,9 +83,9 @@ func (c *Consumer) Consumer(topics []string, handler sarama.ConsumerGroupHandler
 				if errors.Is(err, context.Canceled) || errors.Is(err, sarama.ErrClosedConsumerGroup) {
 					return
 				}
-				log.Println(err)
+				log.WithError(err).Error()
 			}
-			log.Println("rebalance happens, the consumer session will need to be recreated")
+			log.Infof("rebalance happens, the consumer session will need to be recreated")
 		}
 	}()
 }

@@ -5,12 +5,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
 	"strings"
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/docker/pkg/jsonmessage"
 	"github.com/docker/docker/pkg/progress"
+	_ "github.com/limingyao/excellent-go/log/logrus"
+	log "github.com/sirupsen/logrus"
 )
 
 type message jsonmessage.JSONMessage
@@ -35,7 +36,7 @@ func decodeStream(reader io.ReadCloser) error {
 			return err
 		}
 		if msg := jm.String(); msg != "{}" {
-			log.Print(msg)
+			log.Debug(msg)
 		}
 		if jm.Error != nil {
 			return cli.StatusError{Status: jm.Error.Message, StatusCode: jm.Error.Code}
@@ -77,6 +78,6 @@ func (out *progressLog) WriteProgress(prog progress.Progress) error {
 		}
 		formatted = out.sf.formatProgress(prog.ID, prog.Action, &jsonProgress)
 	}
-	log.Print(string(formatted))
+	log.Debug(string(formatted))
 	return nil
 }

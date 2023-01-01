@@ -5,7 +5,6 @@ import (
 	"context"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"net/url"
 	"regexp"
@@ -18,6 +17,8 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
+	_ "github.com/limingyao/excellent-go/log/logrus"
+	log "github.com/sirupsen/logrus"
 )
 
 var (
@@ -216,7 +217,7 @@ func (x Bucket) Get(ctx context.Context, url string) ([]byte, error) {
 	}
 	defer func() {
 		if err := obj.Body.Close(); err != nil {
-			log.Println(err)
+			log.WithError(err).Warn()
 		}
 	}()
 

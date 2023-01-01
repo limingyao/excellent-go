@@ -2,9 +2,10 @@ package etcd
 
 import (
 	"crypto/tls"
-	"log"
 	"time"
 
+	_ "github.com/limingyao/excellent-go/log/logrus"
+	log "github.com/sirupsen/logrus"
 	"go.etcd.io/etcd/client/pkg/v3/transport"
 )
 

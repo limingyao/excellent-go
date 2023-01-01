@@ -3,10 +3,11 @@ package kafka
 import (
 	"context"
 	"encoding/json"
-	"log"
 	"time"
 
 	"github.com/Shopify/sarama"
+	_ "github.com/limingyao/excellent-go/log/logrus"
+	log "github.com/sirupsen/logrus"
 )
 
 type Producer struct {
@@ -100,12 +101,12 @@ func (s *Producer) startAsyncMonitor() {
 	for {
 		select {
 		case msg := <-s.asyncProducer.Successes():
-			log.Printf("produced message success, partition %d offset %d", msg.Partition, msg.Offset)
+			log.Debugf("produced message success, partition %d offset %d", msg.Partition, msg.Offset)
 		case err := <-s.asyncProducer.Errors():
-			log.Printf("produced message err, topic: %s, msg: [%s], err: %v", err.Msg.Topic, err.Msg.Value, err.Error())
+			log.WithError(err).Errorf("produced message err, topic: %s, msg: [%s]", err.Msg.Topic, err.Msg.Value)
 		case <-time.After(60 * time.Second):
 			// 超时策略，避免kafka没有消息后一直等待的问题
-			log.Printf("kafka async producer wait time out %d s", 60)
+			log.Debugf("kafka async producer wait time out %d s", 60)
 		}
 	}
 }
