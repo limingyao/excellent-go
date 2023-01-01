@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/fsnotify/fsnotify"
-	_ "github.com/limingyao/excellent-go/log/logrus"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )
