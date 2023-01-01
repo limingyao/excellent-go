@@ -12,6 +12,8 @@ import (
 	"math"
 	"sort"
 	"strings"
+	"unicode"
+	"unicode/utf8"
 
 	"google.golang.org/protobuf/encoding/prototext"
 	"google.golang.org/protobuf/encoding/protowire"
@@ -26,6 +28,8 @@ const wrapTextMarshalV2 = false
 type TextMarshaler struct {
 	Compact   bool // use compact text format (one line)
 	ExpandAny bool // expand google.protobuf.Any messages of known types
+
+	opts options
 }
 
 // Marshal writes the proto text format of m to w.
@@ -72,6 +76,7 @@ func (tm *TextMarshaler) marshal(m Message) ([]byte, error) {
 			compact:   tm.Compact,
 			expandAny: tm.ExpandAny,
 			complete:  true,
+			opts:      tm.opts,
 		}
 
 		if m, ok := m.(encoding.TextMarshaler); ok {
@@ -92,6 +97,15 @@ var (
 	defaultTextMarshaler = TextMarshaler{}
 	compactTextMarshaler = TextMarshaler{Compact: true}
 )
+
+func NewMarshaler(opts ...Option) TextMarshaler {
+	defaultOpts := defaultOptions
+	for _, o := range opts {
+		o.apply(&defaultOpts)
+	}
+
+	return TextMarshaler{opts: defaultOpts, Compact: true}
+}
 
 // MarshalText writes the proto text format of m to w.
 func MarshalText(w io.Writer, m Message) error { return defaultTextMarshaler.Marshal(w, m) }
@@ -120,6 +134,8 @@ type textWriter struct {
 	complete  bool // whether the current position is a complete line
 	indent    int  // indentation level; never negative
 	buf       []byte
+
+	opts options
 }
 
 func (w *textWriter) Write(p []byte) (n int, _ error) {
@@ -331,7 +347,9 @@ func (w *textWriter) writeMessage(m protoreflect.Message) error {
 				if err := w.writeSingularValue(entry.val, vfd); err != nil {
 					return err
 				}
-				w.WriteByte('\n')
+				if !w.compact {
+					w.WriteByte('\n')
+				}
 				w.indent--
 				w.WriteByte('>')
 				w.WriteByte('\n')
@@ -366,9 +384,20 @@ func (w *textWriter) writeSingularValue(v protoreflect.Value, fd protoreflect.Fi
 		}
 	case protoreflect.StringKind:
 		// NOTE: This does not validate UTF-8 for historical reasons.
-		w.writeQuotedString(string(v.String()))
+		s := v.String()
+		l := utf8.RuneCountInString(s)
+		if w.compact && w.opts.limit > 0 && l > w.opts.limit {
+			s := string([]rune(s)[:w.opts.limit])
+			w.writeQuotedString(fmt.Sprintf("len:%d:%s...", l, s))
+		} else {
+			w.writeQuotedString(v.String())
+		}
 	case protoreflect.BytesKind:
-		w.writeQuotedString(string(v.Bytes()))
+		if w.compact {
+			w.writeQuotedString(fmt.Sprintf("len:%d", len(v.Bytes())))
+		} else {
+			w.writeQuotedString(string(v.Bytes()))
+		}
 	case protoreflect.MessageKind, protoreflect.GroupKind:
 		var bra, ket byte = '<', '>'
 		if fd.Kind() == protoreflect.GroupKind {
@@ -390,6 +419,9 @@ func (w *textWriter) writeSingularValue(v protoreflect.Value, fd protoreflect.Fi
 			w.writeMessage(m)
 		}
 		w.indent--
+		if w.compact && len(w.buf) > 0 && w.buf[len(w.buf)-1] == ' ' {
+			w.buf = w.buf[0 : len(w.buf)-1]
+		}
 		w.WriteByte(ket)
 	case protoreflect.EnumKind:
 		if ev := fd.Enum().Values().ByNumber(v.Enum()); ev != nil {
@@ -406,8 +438,8 @@ func (w *textWriter) writeSingularValue(v protoreflect.Value, fd protoreflect.Fi
 // writeQuotedString writes a quoted string in the protocol buffer text format.
 func (w *textWriter) writeQuotedString(s string) {
 	w.WriteByte('"')
-	for i := 0; i < len(s); i++ {
-		switch c := s[i]; c {
+	for _, c := range s {
+		switch c {
 		case '\n':
 			w.buf = append(w.buf, `\n`...)
 		case '\r':
@@ -420,7 +452,9 @@ func (w *textWriter) writeQuotedString(s string) {
 			w.buf = append(w.buf, `\\`...)
 		default:
 			if isPrint := c >= 0x20 && c < 0x7f; isPrint {
-				w.buf = append(w.buf, c)
+				w.buf = append(w.buf, byte(c))
+			} else if unicode.Is(unicode.Han, c) {
+				w.buf = append(w.buf, []byte(string([]rune{c}))...)
 			} else {
 				w.buf = append(w.buf, fmt.Sprintf(`\%03o`, c)...)
 			}
