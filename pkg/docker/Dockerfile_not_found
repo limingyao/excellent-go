@@ -1,0 +1,3 @@
+FROM ccr.ccs.tencentyun.com/central/ubuntu:not-found
+
+ADD . /app
