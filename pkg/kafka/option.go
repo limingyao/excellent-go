@@ -1,6 +1,8 @@
 package kafka
 
-import "time"
+import (
+	"time"
+)
 
 type options struct {
 	enableSASL bool

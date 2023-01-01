@@ -5,7 +5,6 @@ import (
 	"os"
 	"time"
 
-	_ "github.com/limingyao/excellent-go/log/logrus"
 	log "github.com/sirupsen/logrus"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"

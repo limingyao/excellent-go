@@ -10,7 +10,6 @@ import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/docker/pkg/jsonmessage"
 	"github.com/docker/docker/pkg/progress"
-	_ "github.com/limingyao/excellent-go/log/logrus"
 	log "github.com/sirupsen/logrus"
 )
 

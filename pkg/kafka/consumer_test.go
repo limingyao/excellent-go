@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/Shopify/sarama"
-	_ "github.com/limingyao/excellent-go/log/logrus"
 	"github.com/limingyao/excellent-go/pkg/kafka"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/time/rate"

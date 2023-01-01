@@ -6,7 +6,6 @@ import (
 	"sync"
 
 	"github.com/Shopify/sarama"
-	_ "github.com/limingyao/excellent-go/log/logrus"
 	log "github.com/sirupsen/logrus"
 )
 
