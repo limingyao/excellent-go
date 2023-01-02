@@ -1,6 +1,7 @@
 package config
 
 import (
+	"bytes"
 	"os"
 	"reflect"
 	"time"
@@ -66,5 +67,22 @@ func unmarshal(config Configuration) error {
 	}
 
 	log.Infof("loaded config: %+v", config)
+	return nil
+}
+
+func Unmarshal(buffer []byte, config Configuration) error {
+	v := reflect.ValueOf(config)
+	if !v.IsValid() || v.Kind() != reflect.Ptr {
+		log.Fatalf("parameter %T must be a pointer", config)
+	}
+
+	viper.SetConfigType("yaml")
+	viper.AutomaticEnv()
+	if err := viper.ReadConfig(bytes.NewReader(buffer)); err != nil {
+		log.WithError(err).Fatal("read config buffer fail")
+	}
+	if err := unmarshal(config); err != nil {
+		log.WithError(err).Fatal()
+	}
 	return nil
 }
