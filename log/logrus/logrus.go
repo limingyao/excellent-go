@@ -170,13 +170,17 @@ func init() {
 }
 
 func Init(opts ...Option) {
+	setLogger(logrus.StandardLogger(), opts...)
+}
+
+func setLogger(logger *logrus.Logger, opts ...Option) {
 	defaultOpts := defaultOptions
 	for _, o := range opts {
 		o.apply(&defaultOpts)
 	}
 
 	// formatter
-	logrus.SetFormatter(&ReadableFormatter{
+	logger.SetFormatter(&ReadableFormatter{
 		CallerPrettyfier: defaultCallerPrettyfier,
 		CtxFields:        defaultOpts.ctxFields,
 	})
@@ -186,10 +190,10 @@ func Init(opts ...Option) {
 	if err != nil {
 		logrus.WithError(err).Fatal()
 	}
-	logrus.SetLevel(level)
+	logger.SetLevel(level)
 
 	// report caller
-	logrus.SetReportCaller(!defaultOpts.disableCaller)
+	logger.SetReportCaller(!defaultOpts.disableCaller)
 
 	// output
 	var writers []io.Writer
@@ -212,5 +216,11 @@ func Init(opts ...Option) {
 		logrus.Fatal("no logger output")
 	}
 
-	logrus.SetOutput(io.MultiWriter(writers...))
+	logger.SetOutput(io.MultiWriter(writers...))
+}
+
+func New(opts ...Option) *logrus.Logger {
+	logger := logrus.New()
+	setLogger(logger, opts...)
+	return logger
 }
