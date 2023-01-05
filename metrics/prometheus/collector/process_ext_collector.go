@@ -29,12 +29,12 @@ type processExtCollector struct {
 	diskCancelledWriteBytesTotal               *prometheus.Desc
 }
 
-type CollectorOption struct {
+type ProcessExtCollectorOpts struct {
 	PidFn        func() (int, error)
 	ReportErrors bool
 }
 
-func NewProcessExtCollector(opts CollectorOption) prometheus.Collector {
+func NewProcessExtCollector(opts ProcessExtCollectorOpts) prometheus.Collector {
 	c := &processExtCollector{
 		reportErrors:                 opts.ReportErrors,
 		userCpuSecondsTotal:          userCpuSecondsDesc,

@@ -1,10 +1,11 @@
-package collector
+package collector_test
 
 import (
 	"context"
 	"testing"
 	"time"
 
+	"github.com/limingyao/excellent-go/metrics/prometheus/collector"
 	"github.com/prometheus/client_golang/prometheus"
 	dto "github.com/prometheus/client_model/go"
 )
@@ -30,7 +31,7 @@ func TestNewProcessExtCollector(t *testing.T) {
 
 	go loop(ctx)
 
-	collector := NewProcessExtCollector(CollectorOption{ReportErrors: true})
+	processExtCollector := collector.NewProcessExtCollector(collector.ProcessExtCollectorOpts{ReportErrors: true})
 	metrics := make(chan prometheus.Metric)
 
 	go func() {
@@ -39,7 +40,7 @@ func TestNewProcessExtCollector(t *testing.T) {
 			case <-ctx.Done():
 				return
 			case <-time.After(time.Second):
-				collector.Collect(metrics)
+				processExtCollector.Collect(metrics)
 			}
 		}
 	}()
