@@ -1,5 +1,3 @@
 app: test
-max_age: 3s
-addrs:
- - shanghai
- - beijing
+max_age: 3s # time.Duration
+addrs: shanghai,beijing # []string
