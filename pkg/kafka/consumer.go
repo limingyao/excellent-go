@@ -29,7 +29,7 @@ func NewConsumer(ctx context.Context, addrs []string, groupName string, version 
 		return nil, err
 	}
 	// 分区分配策略
-	config.Consumer.Group.Rebalance.Strategy = sarama.BalanceStrategyRange
+	config.Consumer.Group.Rebalance.GroupStrategies = []sarama.BalanceStrategy{sarama.BalanceStrategyRange}
 	config.Consumer.Offsets.Initial = sarama.OffsetOldest
 	config.Consumer.Return.Errors = true
 	if defaultOpts.enableSASL {
