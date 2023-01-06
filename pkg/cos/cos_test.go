@@ -1,14 +1,20 @@
-package cos
+package cos_test
 
 import (
 	"context"
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/limingyao/excellent-go/pkg/cos"
 )
 
-func testBucket(t *testing.T, bucket *Bucket) {
+func testBucket(t *testing.T, bucket *cos.Bucket) {
 	url, err := bucket.Put(context.Background(), "hello", []byte("hello"))
+	if err != nil {
+		t.Error(err)
+		return
+	}
 	t.Log(url, err)
 
 	buffer, err := bucket.Get(context.Background(), url)
@@ -36,16 +42,7 @@ func testBucket(t *testing.T, bucket *Bucket) {
 }
 
 func TestPublicBucket(t *testing.T) {
-	bucket, err := NewBucket(
-		"",
-		"test",
-		"12345678",
-		"ap-beijing",
-		"id",
-		"key",
-		"",
-		QCloudEndpoint,
-	)
+	bucket, err := cos.NewBucketFromEnv(cos.QCloudEndpoint)
 	if err != nil {
 		t.Error(err)
 		return
@@ -55,17 +52,17 @@ func TestPublicBucket(t *testing.T) {
 }
 
 func TestPrivateBucket(t *testing.T) {
-	bucket, err := NewBucket(
-		"http://dev.machine:10000",
-		"test",
-		"1",
-		"ap-local",
-		"id",
-		"key",
-		"",
-		RawEndpoint,
-		WithPathStyle(),
-	)
+	c := &cos.Configuration{
+		Host:       "http://127.0.0.1:10000",
+		BucketName: "test",
+		AppId:      "1",
+		Region:     "ap-local",
+		SecretId:   "id",
+		SecretKey:  "key",
+		Token:      "",
+	}
+
+	bucket, err := cos.NewBucket(c, cos.RawEndpoint, cos.WithPathStyle())
 	if err != nil {
 		t.Error(err)
 		return
@@ -87,7 +84,7 @@ func TestParseVirtualHostedStyle(t *testing.T) {
 		"https://test-12345678.cos.ap-beijing.myqcloud.com/test.cos?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE",
 	}
 	for i := range urls {
-		t.Log(parseVirtualHostedStyle(urls[i]))
+		t.Log(cos.ParseVirtualHostedStyle(urls[i]))
 	}
 }
 
@@ -99,6 +96,6 @@ func TestParsePathStyle(t *testing.T) {
 		"test-1/path/key1?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE",
 	}
 	for i := range urls {
-		t.Log(parsePathStyle(urls[i]))
+		t.Log(cos.ParsePathStyle(urls[i]))
 	}
 }

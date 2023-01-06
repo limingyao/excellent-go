@@ -17,8 +17,23 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
+	"github.com/limingyao/excellent-go/config"
 	log "github.com/sirupsen/logrus"
 )
+
+type Configuration struct {
+	Host       string `yaml:"host"`
+	BucketName string `yaml:"bucket_name"`
+	AppId      string `yaml:"app_id"`
+	Region     string `yaml:"region"`
+	SecretId   string `yaml:"secret_id"`
+	SecretKey  string `yaml:"secret_key"`
+	Token      string `yaml:"token"`
+}
+
+func (c *Configuration) Init() error {
+	return nil
+}
 
 var (
 	spaceRegexp = regexp.MustCompile(`[ \n\r\t\v\f]+`)
@@ -36,7 +51,7 @@ var (
 	pathStyle = regexp.MustCompile(`^(?:https?://)?(?:[0-9a-zA-Z:.-]+/)?([\w-]+)-([0-9]+)/([^?]*)(?:\?(.*))?$`)
 )
 
-func parseVirtualHostedStyle(url string) (bucketName string, appId string, key string, err error) {
+func ParseVirtualHostedStyle(url string) (bucketName string, appId string, key string, err error) {
 	matched := virtualHostedStyle.FindStringSubmatch(url)
 	if len(matched) != 5 {
 		return "", "", "", fmt.Errorf("parse virtual-hosted-style [%s] failed", url)
@@ -44,7 +59,7 @@ func parseVirtualHostedStyle(url string) (bucketName string, appId string, key s
 	return matched[1], matched[2], matched[3], nil
 }
 
-func parsePathStyle(url string) (bucketName string, appId string, key string, err error) {
+func ParsePathStyle(url string) (bucketName string, appId string, key string, err error) {
 	matched := pathStyle.FindStringSubmatch(url)
 	if len(matched) != 5 {
 		return "", "", "", fmt.Errorf("parse path-style [%s] failed", url)
@@ -87,7 +102,7 @@ func RawEndpoint(host, region string) string {
 	return host
 }
 
-func NewBucket(host, bucketName, appId, region, secretId, secretKey, token string, endpoint Endpoint, opts ...Option) (*Bucket, error) {
+func NewBucket(c *Configuration, endpoint Endpoint, opts ...Option) (*Bucket, error) {
 	defaultOpts := defaultOptions
 	for _, o := range opts {
 		o.apply(&defaultOpts)
@@ -98,35 +113,35 @@ func NewBucket(host, bucketName, appId, region, secretId, secretKey, token strin
 	transport.MaxIdleConns = defaultOpts.maxIdleConns
 	transport.MaxIdleConnsPerHost = defaultOpts.maxIdleConns
 
-	// config
-	config := &aws.Config{
-		Region:           aws.String(region),
-		Endpoint:         aws.String(endpoint(host, region)),
+	// cfg
+	cfg := &aws.Config{
+		Region:           aws.String(c.Region),
+		Endpoint:         aws.String(endpoint(c.Host, c.Region)),
 		S3ForcePathStyle: aws.Bool(defaultOpts.pathStyle),
-		Credentials:      credentials.NewStaticCredentials(secretId, secretKey, token),
+		Credentials:      credentials.NewStaticCredentials(c.SecretId, c.SecretKey, c.Token),
 		DisableSSL:       aws.Bool(defaultOpts.disableSSL),
 		HTTPClient:       &http.Client{Transport: transport},
 	}
 
 	// session
-	sess, err := session.NewSession(config)
+	sess, err := session.NewSession(cfg)
 	if err != nil {
 		return nil, err
 	}
 
 	bucket := &Bucket{}
 	bucket.client = s3.New(sess)
-	bucket.bucketName = bucketName
-	bucket.appId = appId
+	bucket.bucketName = c.BucketName
+	bucket.appId = c.AppId
 	bucket.pathStyle = defaultOpts.pathStyle
 	return bucket, nil
 }
 
 func (x Bucket) parse(url string) (bucketName string, appId string, key string, err error) {
 	if x.pathStyle {
-		return parsePathStyle(url)
+		return ParsePathStyle(url)
 	}
-	return parseVirtualHostedStyle(url)
+	return ParseVirtualHostedStyle(url)
 }
 
 func (x Bucket) Client() *s3.S3 {
@@ -327,4 +342,22 @@ func (x Bucket) Presign(keyOrUrl string, expire time.Duration) (putUrl string, g
 		return "", "", formatError(err)
 	}
 	return putUrl, getUrl, err
+}
+
+var configBytes = []byte(`
+host: ${COS_HOST}
+bucket_name: ${COS_BUCKET_NAME}
+app_id: ${COS_APP_ID}
+region: ${COS_REGION}
+secret_id: ${COS_SECRET_ID}
+secret_key: ${COS_SECRET_KEY}
+token: ""
+`)
+
+func NewBucketFromEnv(endpoint Endpoint, opts ...Option) (*Bucket, error) {
+	cfg := &Configuration{}
+	if err := config.Unmarshal(configBytes, cfg); err != nil {
+		log.WithError(err).Fatal()
+	}
+	return NewBucket(cfg, endpoint, opts...)
 }
