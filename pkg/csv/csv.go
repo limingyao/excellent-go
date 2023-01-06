@@ -5,7 +5,7 @@ import (
 	"strings"
 )
 
-func New(header []string, lines [][]string) []byte {
+func WriteFile(header []string, lines [][]string) []byte {
 	buffer := &bytes.Buffer{}
 	buffer.WriteString("\xEF\xBB\xBF") // UTF-8 BOM
 	buffer.WriteString(strings.Join(header, ","))
