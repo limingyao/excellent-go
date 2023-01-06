@@ -9,10 +9,10 @@ import (
 type HealthStatus pb.HealthCheckResponse_ServingStatus
 
 const (
-	UNKNOWN         = HealthStatus(pb.HealthCheckResponse_UNKNOWN)
-	SERVING         = HealthStatus(pb.HealthCheckResponse_SERVING)
-	NOT_SERVING     = HealthStatus(pb.HealthCheckResponse_NOT_SERVING)
-	SERVICE_UNKNOWN = HealthStatus(pb.HealthCheckResponse_SERVICE_UNKNOWN)
+	UnknownStatus        = HealthStatus(pb.HealthCheckResponse_UNKNOWN)
+	ServingStatus        = HealthStatus(pb.HealthCheckResponse_SERVING)
+	NotServingStatus     = HealthStatus(pb.HealthCheckResponse_NOT_SERVING)
+	ServiceUnknownStatus = HealthStatus(pb.HealthCheckResponse_SERVICE_UNKNOWN)
 )
 
 // https://github.com/grpc-ecosystem/grpc-health-probe

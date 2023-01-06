@@ -26,7 +26,7 @@ const (
 	ClientMaxSendMessageSize    = math.MaxInt32
 )
 
-type webserver struct {
+type Webserver struct {
 	ctx    context.Context
 	cancel context.CancelFunc
 
@@ -47,9 +47,9 @@ type webserver struct {
 	pprofPath        string
 }
 
-func NewServer(opts ...serverOption) *webserver {
+func NewServer(opts ...ServerOption) *Webserver {
 	ctx, cancel := context.WithCancel(context.Background())
-	s := &webserver{
+	s := &Webserver{
 		ctx:         ctx,
 		cancel:      cancel,
 		healthzPath: "/healthz",
@@ -64,7 +64,7 @@ func NewServer(opts ...serverOption) *webserver {
 	return s
 }
 
-func (s *webserver) Serve() error {
+func (s *Webserver) Serve() error {
 	// httpMux 执行最长前缀匹配，注册路径最后必须以/结尾才会触发，否则都交由/路径处理
 	// 所有未匹配到的路径最终都会交给/路径处理
 	s.httpMux.Handle("/", s.gatewayMux)
@@ -112,12 +112,12 @@ func (s *webserver) Serve() error {
 	return http.Serve(lis, h2c.NewHandler(handler, &http2.Server{}))
 }
 
-func (s *webserver) ServeTLS() error {
+func (s *Webserver) ServeTLS() error {
 	// TODO ...
 	return nil
 }
 
-func (s *webserver) registerHealthServer() error {
+func (s *Webserver) registerHealthServer() error {
 	registerHealthServer(s.grpcSrv)
 
 	cc, err := grpc.Dial(fmt.Sprintf("passthrough:///%s:%d", s.ip, s.port), s.dialOptions...)
@@ -128,18 +128,18 @@ func (s *webserver) registerHealthServer() error {
 
 	runtime.WithHealthEndpointAt(newHealthClient(cc), s.healthzPath)(s.gatewayMux)
 
-	SetServerStatus(SERVING)
+	SetServerStatus(ServingStatus)
 
 	return nil
 }
 
-func (s *webserver) registerReflectionServer() {
+func (s *Webserver) registerReflectionServer() {
 	s.RegisterGrpcServer(func(srv *grpc.Server) {
 		reflection.Register(srv)
 	})
 }
 
-func (s *webserver) registerPProf() {
+func (s *Webserver) registerPProf() {
 	s.httpMux.HandleFunc(fmt.Sprintf("%s/", s.pprofPath), pprof.Index)
 	s.httpMux.HandleFunc(fmt.Sprintf("%s/cmdline", s.pprofPath), pprof.Cmdline)
 	s.httpMux.HandleFunc(fmt.Sprintf("%s/profile", s.pprofPath), pprof.Profile)
@@ -147,13 +147,13 @@ func (s *webserver) registerPProf() {
 	s.httpMux.HandleFunc(fmt.Sprintf("%s/trace", s.pprofPath), pprof.Trace)
 }
 
-func (s *webserver) RegisterHttpHandler(pattern string, handler http.Handler) {
+func (s *Webserver) RegisterHttpHandler(pattern string, handler http.Handler) {
 	s.httpMux.Handle(pattern, handler)
 }
 
 type HandlerFromEndpoint func(ctx context.Context, mux *runtime.ServeMux, endpoint string, opts []grpc.DialOption) error
 
-func (s *webserver) RegisterGatewayHandlerFromEndpoint(
+func (s *Webserver) RegisterGatewayHandlerFromEndpoint(
 	endpoint string, opts []grpc.DialOption, handlerFromEndpoint HandlerFromEndpoint,
 ) {
 	if err := handlerFromEndpoint(s.ctx, s.gatewayMux, endpoint, opts); err != nil {
@@ -161,28 +161,28 @@ func (s *webserver) RegisterGatewayHandlerFromEndpoint(
 	}
 }
 
-func (s *webserver) RegisterGatewayHandlerWithDefault(handlerFromEndpoint HandlerFromEndpoint) {
+func (s *Webserver) RegisterGatewayHandlerWithDefault(handlerFromEndpoint HandlerFromEndpoint) {
 	endpoint := fmt.Sprintf("passthrough:///%s:%d", s.ip, s.port)
 	s.RegisterGatewayHandlerFromEndpoint(endpoint, s.dialOptions, handlerFromEndpoint)
 }
 
-func (s *webserver) RegisterGrpcServer(fn func(srv *grpc.Server)) {
+func (s *Webserver) RegisterGrpcServer(fn func(srv *grpc.Server)) {
 	fn(s.grpcSrv)
 }
 
-func (s *webserver) HttpMux() *http.ServeMux {
+func (s *Webserver) HttpMux() *http.ServeMux {
 	return s.httpMux
 }
 
-func (s *webserver) GatewayMux() *runtime.ServeMux {
+func (s *Webserver) GatewayMux() *runtime.ServeMux {
 	return s.gatewayMux
 }
 
-func (s *webserver) GrpcServer() *grpc.Server {
+func (s *Webserver) GrpcServer() *grpc.Server {
 	return s.grpcSrv
 }
 
-func (s *webserver) Stop() {
+func (s *Webserver) Stop() {
 	s.cancel()
 	s.grpcSrv.Stop()
 }

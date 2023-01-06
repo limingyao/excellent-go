@@ -7,66 +7,66 @@ import (
 	"google.golang.org/grpc"
 )
 
-type serverOption func(*webserver)
+type ServerOption func(*Webserver)
 
-func WithAddr(ip string, port int) serverOption {
-	return func(s *webserver) {
+func WithAddr(ip string, port int) ServerOption {
+	return func(s *Webserver) {
 		s.ip = ip
 		s.port = port
 	}
 }
 
-func WithPort(port int) serverOption {
-	return func(s *webserver) {
+func WithPort(port int) ServerOption {
+	return func(s *Webserver) {
 		s.port = port
 	}
 }
 
-func WithGatewayOptions(opts ...runtime.ServeMuxOption) serverOption {
-	return func(s *webserver) {
+func WithGatewayOptions(opts ...runtime.ServeMuxOption) ServerOption {
+	return func(s *Webserver) {
 		s.gatewayOptions = opts
 	}
 }
 
-func WithDialOptions(opts ...grpc.DialOption) serverOption {
-	return func(s *webserver) {
+func WithDialOptions(opts ...grpc.DialOption) ServerOption {
+	return func(s *Webserver) {
 		s.dialOptions = opts
 	}
 }
 
-func WithServerOptions(opts ...grpc.ServerOption) serverOption {
-	return func(s *webserver) {
+func WithServerOptions(opts ...grpc.ServerOption) ServerOption {
+	return func(s *Webserver) {
 		s.serverOptions = opts
 	}
 }
 
-func WithHealthz() serverOption {
-	return func(s *webserver) {
+func WithHealthz() ServerOption {
+	return func(s *Webserver) {
 		s.enableHealthz = true
 	}
 }
 
-func WithHealthzPath(path string) serverOption {
-	return func(s *webserver) {
+func WithHealthzPath(path string) ServerOption {
+	return func(s *Webserver) {
 		s.enableHealthz = true
 		s.healthzPath = strings.TrimLeft(path, "/")
 	}
 }
 
-func WithReflection() serverOption {
-	return func(s *webserver) {
+func WithReflection() ServerOption {
+	return func(s *Webserver) {
 		s.enableReflection = true
 	}
 }
 
-func WithPProf() serverOption {
-	return func(s *webserver) {
+func WithPProf() ServerOption {
+	return func(s *Webserver) {
 		s.enablePProf = true
 	}
 }
 
-func WithPProfPath(path string) serverOption {
-	return func(s *webserver) {
+func WithPProfPath(path string) ServerOption {
+	return func(s *Webserver) {
 		s.enablePProf = true
 		s.pprofPath = strings.TrimLeft(path, "/")
 	}
