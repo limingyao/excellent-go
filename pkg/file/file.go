@@ -24,13 +24,14 @@ func ReadFile(path string, ch chan<- string) error {
 	buf := bufio.NewReader(f)
 	for {
 		line, err := buf.ReadBytes('\n')
-		if err != nil {
+		line = bytes.TrimSpace(line)
+		if len(line) < 1 && err != nil {
 			if errors.Is(err, io.EOF) { //文件已经结束
 				break
 			}
 			log.WithError(err).Error()
 		}
-		ch <- string(bytes.TrimRight(line, "\n"))
+		ch <- string(line)
 	}
 	return nil
 }
