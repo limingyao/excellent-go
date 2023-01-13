@@ -49,7 +49,7 @@ func WithHealthz() ServerOption {
 func WithHealthzPath(path string) ServerOption {
 	return func(s *Webserver) {
 		s.enableHealthz = true
-		s.healthzPath = strings.TrimLeft(path, "/")
+		s.healthzPath = strings.TrimSuffix(path, "/")
 	}
 }
 
@@ -68,6 +68,6 @@ func WithPProf() ServerOption {
 func WithPProfPath(path string) ServerOption {
 	return func(s *Webserver) {
 		s.enablePProf = true
-		s.pprofPath = strings.TrimLeft(path, "/")
+		s.pprofPath = strings.TrimSuffix(path, "/")
 	}
 }

@@ -70,8 +70,7 @@ func (s *Webserver) Serve() error {
 	s.httpMux.Handle("/", s.gatewayMux)
 
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.ProtoMajor == 2 && strings.HasPrefix(
-			r.Header.Get("Content-Type"), "application/grpc") {
+		if r.ProtoMajor == 2 && strings.HasPrefix(r.Header.Get("Content-Type"), "application/grpc") {
 			s.grpcSrv.ServeHTTP(w, r)
 		} else {
 			s.httpMux.ServeHTTP(w, r)
