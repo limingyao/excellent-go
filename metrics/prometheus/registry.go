@@ -17,18 +17,35 @@ func MustRegister(cs ...prometheus.Collector) {
 	defaultRegister.MustRegister(cs...)
 }
 
-func RegisterDefault() {
-	MustRegister(collectors.NewProcessCollector(collectors.ProcessCollectorOpts{}))
-	MustRegister(collector.NewProcessExtCollector(collector.ProcessExtCollectorOpts{}))
-	MustRegister(collectors.NewGoCollector())
+func HandleDefault(httpMux *http.ServeMux, opts ...Option) {
+	httpMux.Handle("/metrics", Handler(opts...))
 }
 
-func InstrumentMetricHandler() http.Handler {
+func Handler(opts ...Option) http.Handler {
+	defaultOpts := defaultOptions
+	for _, o := range opts {
+		o.apply(&defaultOpts)
+	}
+
+	if !defaultOpts.disableProcessCollector {
+		MustRegister(collectors.NewProcessCollector(collectors.ProcessCollectorOpts{}))
+	}
+	if !defaultOpts.disableProcessExtCollector {
+		MustRegister(collector.NewProcessExtCollector(collector.ProcessExtCollectorOpts{}))
+	}
+	if defaultOpts.enableDiskUsageCollector {
+		MustRegister(collector.NewDiskUsageCollector(collector.DiskUsageCollectorOpts{}))
+	}
+	if defaultOpts.enableGoCollector {
+		MustRegister(collectors.NewGoCollector())
+	}
+	if !defaultOpts.disableGoSimpleCollector {
+		MustRegister(collector.NewGoSimpleCollector(collector.GoSimpleCollectorOpts{}))
+	}
+	if defaultOpts.disableInstrumentMetricHandler {
+		return promhttp.HandlerFor(defaultRegister, promhttp.HandlerOpts{})
+	}
 	return promhttp.InstrumentMetricHandler(
 		defaultRegister, promhttp.HandlerFor(defaultRegister, promhttp.HandlerOpts{}),
 	)
-}
-
-func Handler() http.Handler {
-	return promhttp.HandlerFor(defaultRegister, promhttp.HandlerOpts{})
 }

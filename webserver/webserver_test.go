@@ -11,15 +11,13 @@ import (
 
 func TestNewServer(t *testing.T) {
 	srv := webserver.NewServer(
-		webserver.WithPort(8080),
 		webserver.WithHealthz(),
 		webserver.WithPProf(),
 		webserver.WithDialOptions([]grpc.DialOption{
 			grpc.WithTransportCredentials(insecure.NewCredentials()),
 		}...),
 	)
-	prometheus.RegisterDefault()
-	srv.RegisterHttpHandler("/metrics", prometheus.InstrumentMetricHandler())
+	srv.RegisterHttpHandler("/metrics", prometheus.Handler())
 	if err := srv.Serve(); err != nil {
 		t.Error(err)
 	}

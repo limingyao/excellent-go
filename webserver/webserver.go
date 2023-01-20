@@ -93,8 +93,8 @@ func (s *Webserver) Serve() error {
 				log.WithError(err).Errorf("convert %s to int fail", items[len(items)-1])
 			}
 		}
-		log.Infof("listen %s", lis.Addr().String())
 	}
+	log.Infof("webserver started on %s", lis.Addr().String())
 
 	if s.enableHealthz {
 		if err := s.registerHealthServer(); err != nil {
