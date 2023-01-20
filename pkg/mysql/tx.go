@@ -9,7 +9,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-func Tx(ctx context.Context, db *sqlx.DB, fn func(tx *sqlx.Tx) error) error {
+func Tx(ctx context.Context, db *sqlx.DB, wrapper func(tx *sqlx.Tx) error) error {
 	if db == nil {
 		return fmt.Errorf("db is nil")
 	}
@@ -25,7 +25,7 @@ func Tx(ctx context.Context, db *sqlx.DB, fn func(tx *sqlx.Tx) error) error {
 		}
 	}()
 
-	if err := fn(tx); err != nil {
+	if err := wrapper(tx); err != nil {
 		return err
 	}
 
