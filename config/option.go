@@ -1,13 +1,35 @@
 package config
 
-import (
-	"github.com/mitchellh/mapstructure"
-	"github.com/spf13/viper"
+type options struct {
+	tagName string
+}
+
+var (
+	defaultOptions = options{
+		tagName: "yaml",
+	}
 )
 
-// DecoderOptions 配置文件解码参数
-func DecoderOptions() []viper.DecoderConfigOption {
-	return []viper.DecoderConfigOption{func(config *mapstructure.DecoderConfig) {
-		config.TagName = "yaml"
-	}}
+type Option interface {
+	apply(*options)
+}
+
+type funcOption struct {
+	f func(*options)
+}
+
+func (fo *funcOption) apply(o *options) {
+	fo.f(o)
+}
+
+func newFuncOption(f func(*options)) *funcOption {
+	return &funcOption{
+		f: f,
+	}
+}
+
+func WithTagName(name string) Option {
+	return newFuncOption(func(o *options) {
+		o.tagName = name
+	})
 }

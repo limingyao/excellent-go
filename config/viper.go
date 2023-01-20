@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/fsnotify/fsnotify"
+	"github.com/mitchellh/mapstructure"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )
@@ -15,41 +16,52 @@ type Configuration interface {
 	Init() error
 }
 
-func Watch(filepath string, fn func() Configuration) <-chan Configuration {
-	ch := make(chan Configuration, 1)
-
-	config := fn()
-	v := reflect.ValueOf(config)
-	if !v.IsValid() || v.Kind() != reflect.Ptr {
-		log.Fatalf("parameter %T must be a pointer", config)
+func Watch(filepath string, initializer func() Configuration, opts ...Option) <-chan Configuration {
+	defaultOpts := defaultOptions
+	for _, o := range opts {
+		o.apply(&defaultOpts)
 	}
 
 	viper.SetConfigFile(filepath)
+	viper.SetConfigType(defaultOpts.tagName)
 	viper.AutomaticEnv()
 	if err := viper.ReadInConfig(); err != nil {
 		log.WithError(err).Fatalf("read config %s fail", filepath)
 	}
 
+	configs := make(chan Configuration, 1)
 	viper.OnConfigChange(func(e fsnotify.Event) {
 		log.Infof("config %s changed", e.Name)
-		config := fn()
-		if err := unmarshal(config); err == nil {
+		config := initializer()
+		if err := unmarshal(config, defaultOpts); err == nil {
 			select {
-			case ch <- config:
+			case configs <- config:
 			case <-time.After(time.Second):
 			}
 		}
 	})
 	viper.WatchConfig()
 
-	if err := unmarshal(config); err != nil {
+	config := initializer()
+	if err := unmarshal(config, defaultOpts); err != nil {
 		log.WithError(err).Fatal()
 	}
-	ch <- config
-	return ch
+	configs <- config
+
+	return configs
 }
 
-func unmarshal(config Configuration) error {
+func unmarshal(config Configuration, opt options) error {
+	v := reflect.ValueOf(config)
+	if !v.IsValid() || v.Kind() != reflect.Ptr {
+		log.Fatalf("parameter %T must be a pointer", config)
+	}
+
+	var decoderOpts []viper.DecoderConfigOption
+	decoderOpts = append(decoderOpts, func(config *mapstructure.DecoderConfig) {
+		config.TagName = opt.tagName
+	})
+
 	for _, key := range viper.AllKeys() {
 		val := viper.GetString(key)
 		newVal := os.ExpandEnv(val)
@@ -59,7 +71,7 @@ func unmarshal(config Configuration) error {
 		}
 	}
 
-	if err := viper.Unmarshal(config, DecoderOptions()...); err != nil {
+	if err := viper.Unmarshal(config, decoderOpts...); err != nil {
 		log.WithError(err).Errorf("decode config fail")
 	}
 	if err := config.Init(); err != nil {
@@ -70,19 +82,39 @@ func unmarshal(config Configuration) error {
 	return nil
 }
 
-func Unmarshal(buffer []byte, config Configuration) error {
-	v := reflect.ValueOf(config)
-	if !v.IsValid() || v.Kind() != reflect.Ptr {
-		log.Fatalf("parameter %T must be a pointer", config)
+func Unmarshal(buffer []byte, config Configuration, opts ...Option) error {
+	defaultOpts := defaultOptions
+	for _, o := range opts {
+		o.apply(&defaultOpts)
 	}
 
-	viper.SetConfigType("yaml")
+	viper.SetConfigType(defaultOpts.tagName)
 	viper.AutomaticEnv()
 	if err := viper.ReadConfig(bytes.NewReader(buffer)); err != nil {
 		log.WithError(err).Fatal("read config buffer fail")
 	}
-	if err := unmarshal(config); err != nil {
+	if err := unmarshal(config, defaultOpts); err != nil {
 		log.WithError(err).Fatal()
 	}
+
+	return nil
+}
+
+func UnmarshalFile(filepath string, config Configuration, opts ...Option) error {
+	defaultOpts := defaultOptions
+	for _, o := range opts {
+		o.apply(&defaultOpts)
+	}
+
+	viper.SetConfigFile(filepath)
+	viper.SetConfigType(defaultOpts.tagName)
+	viper.AutomaticEnv()
+	if err := viper.ReadInConfig(); err != nil {
+		log.WithError(err).Fatalf("read config %s fail", filepath)
+	}
+	if err := unmarshal(config, defaultOpts); err != nil {
+		log.WithError(err).Fatal()
+	}
+
 	return nil
 }
