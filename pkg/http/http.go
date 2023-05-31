@@ -19,7 +19,7 @@ import (
 
 var spaceRegexp = regexp.MustCompile(`[ \n\r\t\v\f]+`)
 
-func formatBody(buffer []byte) string {
+func FormatBody(buffer []byte) string {
 	return string(spaceRegexp.ReplaceAll(buffer, []byte(" ")))
 }
 
@@ -55,10 +55,10 @@ func New(opts ...Option) (*Client, error) {
 
 func (x Client) Request(
 	ctx context.Context, target, method string, headers map[string]string, data []byte,
-) ([]byte, int, error) {
+) (body []byte, response *http.Response, err error) {
 	request, err := http.NewRequest(method, target, bytes.NewReader(data))
 	if err != nil {
-		return nil, 0, err
+		return nil, nil, err
 	}
 	for k, v := range headers {
 		request.Header.Set(k, v)
@@ -69,9 +69,9 @@ func (x Client) Request(
 		Transport: x.transport,
 		Timeout:   x.timeout,
 	}
-	response, err := client.Do(request)
+	response, err = client.Do(request)
 	if err != nil {
-		return nil, 0, err
+		return nil, nil, err
 	}
 	defer func() {
 		if err := response.Body.Close(); err != nil {
@@ -79,13 +79,13 @@ func (x Client) Request(
 		}
 	}()
 
-	body, err := ioutil.ReadAll(response.Body)
-	return body, response.StatusCode, err
+	body, err = ioutil.ReadAll(response.Body)
+	return body, response, err
 }
 
 func (x Client) JsonPost(
 	ctx context.Context, target string, headers map[string]string, req interface{}, rsp interface{},
-) (string, int, error) {
+) (body []byte, code int, header map[string][]string, err error) {
 	if headers == nil {
 		headers = make(map[string]string)
 	}
@@ -94,29 +94,29 @@ func (x Client) JsonPost(
 	}
 	rv := reflect.ValueOf(rsp)
 	if rsp == nil || rv.Kind() != reflect.Ptr {
-		return "", 0, fmt.Errorf("rsp can't be nil or non-pointer")
+		return body, 0, nil, fmt.Errorf("rsp can't be nil or non-pointer")
 	}
 
 	buffer, err := json.Marshal(req)
 	if err != nil {
-		return "", 0, err
+		return body, 0, nil, err
 	}
 
-	buffer, httpCode, err := x.Request(ctx, target, "POST", headers, buffer)
+	body, response, err := x.Request(ctx, target, "POST", headers, buffer)
 	if err != nil {
-		return "", httpCode, err
+		return body, response.StatusCode, response.Header, err
 	}
 
 	if err := json.Unmarshal(buffer, rsp); err != nil {
-		return formatBody(buffer), httpCode, err
+		return body, response.StatusCode, response.Header, err
 	}
 
-	return "", httpCode, nil
+	return body, response.StatusCode, response.Header, nil
 }
 
 func (x Client) ProtoPost(
 	ctx context.Context, target string, headers map[string]string, req proto.Message, rsp proto.Message,
-) (string, int, error) {
+) (body []byte, code int, header map[string][]string, err error) {
 	if headers == nil {
 		headers = make(map[string]string)
 	}
@@ -125,40 +125,40 @@ func (x Client) ProtoPost(
 	}
 	rv := reflect.ValueOf(rsp)
 	if rsp == nil || rv.Kind() != reflect.Ptr {
-		return "", 0, fmt.Errorf("rsp can't be nil or non-pointer")
+		return body, 0, nil, fmt.Errorf("rsp can't be nil or non-pointer")
 	}
 
 	buffer, err := proto.Marshal(req)
 	if err != nil {
-		return "", 0, err
+		return body, 0, nil, err
 	}
 
-	buffer, httpCode, err := x.Request(ctx, target, "POST", headers, buffer)
+	body, response, err := x.Request(ctx, target, "POST", headers, buffer)
 	if err != nil {
-		return "", httpCode, err
+		return body, response.StatusCode, response.Header, err
 	}
 
 	if err := proto.Unmarshal(buffer, rsp); err != nil {
-		return formatBody(buffer), httpCode, err
+		return body, response.StatusCode, response.Header, err
 	}
 
-	return "", httpCode, nil
+	return body, response.StatusCode, response.Header, nil
 }
 
 func (x Client) Post(
 	ctx context.Context, target string, headers map[string]string, requestData []byte,
-) ([]byte, int, error) {
+) ([]byte, *http.Response, error) {
 	return x.Request(ctx, target, "POST", headers, requestData)
 }
 
 func (x Client) Get(
 	ctx context.Context, target string, headers map[string]string,
-) ([]byte, int, error) {
+) ([]byte, *http.Response, error) {
 	return x.Request(ctx, target, "GET", headers, []byte{})
 }
 
 func (x Client) Put(
 	ctx context.Context, target string, headers map[string]string, requestData []byte,
-) ([]byte, int, error) {
+) ([]byte, *http.Response, error) {
 	return x.Request(ctx, target, "PUT", headers, requestData)
 }
