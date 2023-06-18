@@ -264,11 +264,6 @@ fabric.properties
 
 ### User template
 # General
-third_path
-cmake_3rd/
-thirdparty.cmake
-thirdparty.srv.cmake
-chromedriver
 *.rpm
 *.tar
 *.tgz
@@ -276,11 +271,6 @@ chromedriver
 *.zip
 *.cache
 *.cache~
-pack/
 
 # VS Code
 .vscode/
-
-# Live SDK
-boost/
-pkgconfig/
