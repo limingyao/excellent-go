@@ -3,6 +3,7 @@ package cos
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -71,10 +72,12 @@ func formatError(err error) error {
 	if err == nil {
 		return nil
 	}
-	if awsErr, ok := err.(awserr.Error); ok {
-		if err, ok := err.(awserr.RequestFailure); ok {
+	var awsErr awserr.Error
+	if ok := errors.As(err, &awsErr); ok {
+		var awsReqErr awserr.RequestFailure
+		if ok := errors.As(err, &awsReqErr); ok {
 			return fmt.Errorf("{status_code: %d, request_id: %s, code: %s, msg: %s, orig_err: %v}",
-				err.StatusCode(), err.RequestID(), awsErr.Code(), awsErr.Message(), formatError(awsErr.OrigErr()))
+				awsReqErr.StatusCode(), awsReqErr.RequestID(), awsErr.Code(), awsErr.Message(), formatError(awsErr.OrigErr()))
 		}
 		return fmt.Errorf("{code: %s, msg: %s, orig_err: %v}", awsErr.Code(), awsErr.Message(), formatError(awsErr.OrigErr()))
 	}

@@ -3,6 +3,7 @@ package mysql
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 
 	"github.com/jmoiron/sqlx"
@@ -20,7 +21,7 @@ func Tx(ctx context.Context, db *sqlx.DB, wrapper func(tx *sqlx.Tx) error) error
 	}
 
 	defer func() {
-		if err := tx.Rollback(); err != nil && err != sql.ErrTxDone {
+		if err := tx.Rollback(); err != nil && !errors.Is(err, sql.ErrTxDone) {
 			log.WithError(err).Errorf("tx rollback")
 		}
 	}()
