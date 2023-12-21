@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Shopify/sarama"
+	"github.com/IBM/sarama"
 	"github.com/limingyao/excellent-go/pkg/kafka"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/time/rate"

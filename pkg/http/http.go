@@ -6,13 +6,13 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"reflect"
 	"regexp"
 	"time"
 
-	"github.com/gin-gonic/gin/binding"
+	"github.com/limingyao/excellent-go/encoding"
 	log "github.com/sirupsen/logrus"
 	"google.golang.org/protobuf/proto"
 )
@@ -79,7 +79,7 @@ func (x Client) Request(
 		}
 	}()
 
-	body, err = ioutil.ReadAll(response.Body)
+	body, err = io.ReadAll(response.Body)
 	return body, response, err
 }
 
@@ -90,7 +90,7 @@ func (x Client) JsonPost(
 		headers = make(map[string]string)
 	}
 	if _, ok := headers["Content-Type"]; !ok {
-		headers["Content-Type"] = binding.MIMEJSON
+		headers["Content-Type"] = encoding.MIMEJSON
 	}
 	rv := reflect.ValueOf(rsp)
 	if rsp == nil || rv.Kind() != reflect.Ptr {
@@ -121,7 +121,7 @@ func (x Client) ProtoPost(
 		headers = make(map[string]string)
 	}
 	if _, ok := headers["Content-Type"]; !ok {
-		headers["Content-Type"] = binding.MIMEPROTOBUF
+		headers["Content-Type"] = encoding.MIMEPROTOBUF
 	}
 	rv := reflect.ValueOf(rsp)
 	if rsp == nil || rv.Kind() != reflect.Ptr {
