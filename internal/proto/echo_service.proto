@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+package internal.proto;
+
+option go_package = "github.com/limingyao/excellent-go/internal/proto";
+
+import "google/api/annotations.proto";
+
+message Message {
+  string value = 1;
+}
+
+service EchoService {
+  rpc Echo(Message) returns (Message) {
+    option (google.api.http) = {
+      post: "/echo"
+      body: "*"
+    };
+  }
+}
