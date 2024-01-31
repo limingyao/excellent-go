@@ -36,9 +36,10 @@ type Webserver struct {
 	gatewayMux *runtime.ServeMux
 	grpcSrv    *grpc.Server
 
-	gatewayOptions []runtime.ServeMuxOption // gateway
-	dialOptions    []grpc.DialOption        // gateway dial grpc
-	serverOptions  []grpc.ServerOption      // grpc
+	gatewayOptions       []runtime.ServeMuxOption // gateway option
+	dialOptions          []grpc.DialOption        // gateway dial grpc option
+	serverOptions        []grpc.ServerOption      // grpc option
+	handlersFromEndpoint []HandlerFromEndpoint    // gateway handlers
 
 	enableHealthz    bool
 	healthzPath      string
@@ -107,6 +108,7 @@ func (s *Webserver) Serve() error {
 	if s.enablePProf {
 		s.registerPProf()
 	}
+	s.registerGatewayHandler()
 
 	return http.Serve(lis, h2c.NewHandler(handler, &http2.Server{}))
 }
@@ -161,8 +163,14 @@ func (s *Webserver) RegisterGatewayHandlerFromEndpoint(
 }
 
 func (s *Webserver) RegisterGatewayHandlerWithDefault(handlerFromEndpoint HandlerFromEndpoint) {
+	s.handlersFromEndpoint = append(s.handlersFromEndpoint, handlerFromEndpoint)
+}
+
+func (s *Webserver) registerGatewayHandler() {
 	endpoint := fmt.Sprintf("passthrough:///%s:%d", s.ip, s.port)
-	s.RegisterGatewayHandlerFromEndpoint(endpoint, s.dialOptions, handlerFromEndpoint)
+	for i := range s.handlersFromEndpoint {
+		s.RegisterGatewayHandlerFromEndpoint(endpoint, s.dialOptions, s.handlersFromEndpoint[i])
+	}
 }
 
 func (s *Webserver) RegisterGrpcServer(fn func(srv *grpc.Server)) {
