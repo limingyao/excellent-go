@@ -1,7 +1,8 @@
 package config
 
 type options struct {
-	tagName string
+	tagName      string
+	automaticEnv bool
 }
 
 var (
@@ -31,5 +32,11 @@ func newFuncOption(f func(*options)) *funcOption {
 func WithTagName(name string) Option {
 	return newFuncOption(func(o *options) {
 		o.tagName = name
+	})
+}
+
+func WithAutomaticEnv() Option {
+	return newFuncOption(func(o *options) {
+		o.automaticEnv = true
 	})
 }

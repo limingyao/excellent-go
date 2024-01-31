@@ -24,7 +24,9 @@ func Watch(filepath string, initializer func() Configuration, opts ...Option) <-
 
 	viper.SetConfigFile(filepath)
 	viper.SetConfigType(defaultOpts.tagName)
-	//viper.AutomaticEnv()
+	if defaultOpts.automaticEnv {
+		viper.AutomaticEnv()
+	}
 	if err := viper.ReadInConfig(); err != nil {
 		log.WithError(err).Fatalf("read config %s fail", filepath)
 	}
@@ -89,7 +91,9 @@ func Unmarshal(buffer []byte, config Configuration, opts ...Option) error {
 	}
 
 	viper.SetConfigType(defaultOpts.tagName)
-	//viper.AutomaticEnv()
+	if defaultOpts.automaticEnv {
+		viper.AutomaticEnv()
+	}
 	if err := viper.ReadConfig(bytes.NewReader(buffer)); err != nil {
 		log.WithError(err).Fatal("read config buffer fail")
 	}
@@ -108,7 +112,9 @@ func UnmarshalFile(filepath string, config Configuration, opts ...Option) error 
 
 	viper.SetConfigFile(filepath)
 	viper.SetConfigType(defaultOpts.tagName)
-	//viper.AutomaticEnv()
+	if defaultOpts.automaticEnv {
+		viper.AutomaticEnv()
+	}
 	if err := viper.ReadInConfig(); err != nil {
 		log.WithError(err).Fatalf("read config %s fail", filepath)
 	}
