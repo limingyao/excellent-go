@@ -1,6 +1,9 @@
 package logrus
 
-import "time"
+import (
+	"sort"
+	"time"
+)
 
 type options struct {
 	level         string        // 日志级别
@@ -47,6 +50,7 @@ func WithLevel(level string) Option {
 // WithContextFields logrus.WithContext() 打印 ctx 中的字段
 func WithContextFields(fields ...string) Option {
 	return newFuncOption(func(o *options) {
+		sort.Strings(fields)
 		o.ctxFields = fields
 	})
 }
