@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	"github.com/limingyao/excellent-go/metrics/prometheus"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/h2c"
@@ -41,20 +42,24 @@ type Webserver struct {
 	serverOptions        []grpc.ServerOption      // grpc option
 	handlersFromEndpoint []HandlerFromEndpoint    // gateway handlers
 
-	enableHealthz    bool
-	healthzPath      string
-	enableReflection bool
-	enablePProf      bool
-	pprofPath        string
+	enableHealthz     bool
+	healthzPath       string
+	enableReflection  bool
+	enablePProf       bool
+	pprofPath         string
+	enablePrometheus  bool
+	prometheusOptions []prometheus.Option
+	prometheusPath    string
 }
 
 func NewServer(opts ...ServerOption) *Webserver {
 	ctx, cancel := context.WithCancel(context.Background())
 	s := &Webserver{
-		ctx:         ctx,
-		cancel:      cancel,
-		healthzPath: "/healthz",
-		pprofPath:   "/debug/pprof",
+		ctx:            ctx,
+		cancel:         cancel,
+		healthzPath:    "/healthz",
+		pprofPath:      "/debug/pprof",
+		prometheusPath: "/metrics",
 	}
 	for _, opt := range opts {
 		opt(s)
@@ -108,6 +113,9 @@ func (s *Webserver) Serve() error {
 	if s.enablePProf {
 		s.registerPProf()
 	}
+	if s.enablePrometheus {
+		s.registerPrometheus()
+	}
 	s.registerGatewayHandler()
 
 	return http.Serve(lis, h2c.NewHandler(handler, &http2.Server{}))
@@ -146,6 +154,10 @@ func (s *Webserver) registerPProf() {
 	s.httpMux.HandleFunc(fmt.Sprintf("%s/profile", s.pprofPath), pprof.Profile)
 	s.httpMux.HandleFunc(fmt.Sprintf("%s/symbol", s.pprofPath), pprof.Symbol)
 	s.httpMux.HandleFunc(fmt.Sprintf("%s/trace", s.pprofPath), pprof.Trace)
+}
+
+func (s *Webserver) registerPrometheus() {
+	s.httpMux.Handle(s.prometheusPath, prometheus.Handler(s.prometheusOptions...))
 }
 
 func (s *Webserver) RegisterHttpHandler(pattern string, handler http.Handler) {

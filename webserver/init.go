@@ -1,3 +1,5 @@
 package webserver
 
-import _ "github.com/limingyao/excellent-go/log/logrus"
+import (
+	_ "github.com/limingyao/excellent-go/log/logrus"
+)

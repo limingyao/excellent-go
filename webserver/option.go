@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	"github.com/limingyao/excellent-go/metrics/prometheus"
 	"google.golang.org/grpc"
 )
 
@@ -69,5 +70,20 @@ func WithPProfPath(path string) ServerOption {
 	return func(s *Webserver) {
 		s.enablePProf = true
 		s.pprofPath = strings.TrimSuffix(path, "/")
+	}
+}
+
+func WithPrometheus(opts ...prometheus.Option) ServerOption {
+	return func(s *Webserver) {
+		s.enablePrometheus = true
+		s.prometheusOptions = opts
+	}
+}
+
+func WithPrometheusPath(path string, opts ...prometheus.Option) ServerOption {
+	return func(s *Webserver) {
+		s.enablePrometheus = true
+		s.prometheusOptions = opts
+		s.prometheusPath = strings.TrimSuffix(path, "/")
 	}
 }

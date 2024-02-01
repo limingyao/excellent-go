@@ -9,7 +9,6 @@ import (
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	pb "github.com/limingyao/excellent-go/internal/proto"
-	"github.com/limingyao/excellent-go/metrics/prometheus"
 	"github.com/limingyao/excellent-go/webserver"
 	log "github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
@@ -36,6 +35,7 @@ func TestNewServer(t *testing.T) {
 		webserver.WithHealthz(),
 		webserver.WithPProf(),
 		webserver.WithReflection(),
+		webserver.WithPrometheus(),
 		webserver.WithServerOptions([]grpc.ServerOption{
 			grpc.MaxRecvMsgSize(webserver.ServerMaxReceiveMessageSize),
 			grpc.MaxSendMsgSize(webserver.ServerMaxSendMessageSize),
@@ -75,8 +75,6 @@ func TestNewServer(t *testing.T) {
 			}),
 		}...),
 	)
-	srv.RegisterHttpHandler("/metrics", prometheus.Handler())
-	// TODO add to webserver WithPrometheus ?
 	// TODO support ?
 	// https://grpc-ecosystem.github.io/grpc-gateway/docs/mapping/customizing_your_gateway/#pretty-print-json-responses-when-queried-with-pretty
 
